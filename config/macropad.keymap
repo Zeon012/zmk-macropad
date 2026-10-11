@@ -4,7 +4,6 @@
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/outputs.h>
-#include <dt-bindings/zmk/rgb.h>
 
 / {
     behaviors {
@@ -45,7 +44,7 @@
             bindings = <
                             &bt BT_SEL 0  &bt BT_SEL 1
                 &bt BT_SEL 2  &bootloader   &bt BT_CLR   &out OUT_TOG
-                &rgb_ug RGB_TOG  &rgb_ug RGB_EFF  &rgb_ug RGB_BRI  &rgb_ug RGB_BRD
+                &none  &none  &none  &none
                               &studio_unlock  &studio_unlock  &trans
             >;
             sensor-bindings = <&rsr_track>;

@@ -1,0 +1,25 @@
+config MACROPAD_LEDS
+    bool "Macropad per-action LED effects"
+    depends on !ZMK_RGB_UNDERGLOW
+    select LED_STRIP
+    select ZMK_LOW_PRIORITY_WORK_QUEUE
+    help
+      Drives the LED strip chosen as zmk,underglow with the per-key effects
+      from the original macropad firmware. Replaces ZMK's RGB underglow.
+
+if MACROPAD_LEDS
+
+config MACROPAD_LEDS_BRIGHTNESS
+    int "Global LED brightness in percent"
+    range 1 100
+    default 35
+    help
+      Scales every pixel. 23 LEDs at 100 % can draw well over the 500 mA a
+      USB port supplies, so keep this low when powering the strip from USB.
+
+config MACROPAD_LEDS_FRAME_MS
+    int "Milliseconds between animation frames"
+    range 10 200
+    default 30
+
+endif
