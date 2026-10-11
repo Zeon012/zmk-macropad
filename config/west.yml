@@ -1,11 +1,29 @@
 manifest:
   remotes:
-    - name: zmkfirmware
-      url-base: https://github.com/zmkfirmware
+    - name: cormoran
+      url-base: https://github.com/cormoran
   projects:
+    # ZMK fork that adds the unofficial custom Studio RPC protocol
+    # (branch main+custom-studio-protocol). Everything is pinned to a commit
+    # that was reviewed; review again before moving any of these forward.
     - name: zmk
-      remote: zmkfirmware
-      revision: main
+      remote: cormoran
+      revision: 1fc72aaff7a42bd533c1f4c9b3f23c5317c745f4
       import: app/west.yml
+    - name: zmk-feature-custom-settings
+      remote: cormoran
+      revision: c6a7fef3a3be3d3ace5de9a4b0628c6418cd1f3f
+    - name: zmk-feature-runtime-macro
+      remote: cormoran
+      revision: 38530962eb7061b60efcb98e84585cfb1f0cb6de
+    - name: zmk-behavior-runtime-sensor-rotate
+      remote: cormoran
+      revision: 8b1125ed676c1f5e14145d217984f33d0ebdcef4
+    - name: zmk-feature-kscan-diagnostics
+      remote: cormoran
+      revision: 1432f7fe0cfe903cd7d3c9931ae6bd6f2e1f328e
+    - name: zmk-feature-input-stream
+      remote: cormoran
+      revision: aeb015908a42a7615ccdccc7feb3a10d23132a71
   self:
     path: config
