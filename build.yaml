@@ -1,0 +1,6 @@
+include:
+  - board: nice_nano//zmk
+    shield: macropad
+    snippet: studio-rpc-usb-uart
+  - board: nice_nano//zmk
+    shield: settings_reset
