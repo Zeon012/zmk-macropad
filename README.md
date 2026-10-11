@@ -33,7 +33,7 @@ The WS2812 strip wants 5 V. Power it from USB 5 V, not the 3.3 V pin, and consid
 The original firmware shipped every control as "None", so these are placeholders:
 
 - Base: F13-F24 for the 12 non-Send keys, Send = Enter (tap) / Fn layer (hold). Encoder = volume.
-- Fn (hold Send): BT select 0-3, BT clear, USB/BT toggle, RGB toggle/effect/brightness, bootloader, Studio unlock. Encoder = next/previous track.
+- Fn (hold Send): BT select 0-2, BT clear, USB/BT toggle, RGB toggle/effect/brightness, bootloader, Studio unlock. Encoder = next/previous track.
 
 ## Build and flash
 
