@@ -4,7 +4,7 @@ ZMK firmware (Bluetooth + USB, ZMK Studio) for the 13-key macropad from `codex-m
 
 ## Wiring (nice!nano v2 pinout, USB at top)
 
-Diodes are unchanged from the original: column bus -|>|- switch - row bus (cathode toward the row), so `diode-direction = "col2row"`.
+Diodes conduct from the row bus to the column bus (cathode toward the column), so `diode-direction = "row2col"`.
 
 | Function | nRF pin | Silkscreen |
 |---|---|---|
