@@ -1,5 +1,12 @@
 name: Build ZMK firmware
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    paths-ignore:
+      - "configurator/**"
+  pull_request:
+    paths-ignore:
+      - "configurator/**"
+  workflow_dispatch:
 
 jobs:
   build:

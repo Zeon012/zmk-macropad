@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Macropad Configurator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">nRF52840 / ZMK</p>
+        <h1>Macropad configurator</h1>
+      </div>
+      <div class="connection">
+        <span id="statusDot" class="status-dot"></span>
+        <span id="statusText">Disconnected</span>
+        <button id="connectButton" class="button button-primary">Connect device</button>
+        <button id="saveButton" class="button button-accent" disabled>Save</button>
+        <button id="discardButton" class="button button-quiet" disabled>Discard</button>
+      </div>
+    </header>
+
+    <nav class="via-nav" aria-label="Layers">
+      <span class="via-brand">MACRO PAD</span>
+      <span id="layerTabs"></span>
+      <span class="via-spacer"></span>
+      <span id="batteryStatus" class="via-meta" hidden></span>
+      <span id="deviceName" class="via-meta">No device</span>
+    </nav>
+
+    <p id="lockBanner" class="lock-banner" hidden>
+      <strong>The pad is locked.</strong> Hold Game Mode and press the Home key to unlock it for editing.
+    </p>
+    <p id="notice" class="notice" aria-live="polite"></p>
+
+    <section class="keymap-workbench">
+      <div class="keymap-panel">
+        <div class="panel-heading"><span>Keymap</span><span class="panel-hint">Select a key, then pick what it does</span></div>
+        <div id="keymapPreview" class="keymap-preview disabled"></div>
+        <p id="knobCaption" class="knob-caption" hidden></p>
+      </div>
+      <aside class="inspector-panel">
+        <span id="selectedKicker" class="section-kicker">Selected key</span>
+        <h2 id="selectedName">Task 1</h2>
+        <p id="selectedSummary">Not loaded</p>
+        <span class="section-kicker">Held with it</span>
+        <div id="modToggles" class="mod-toggles"></div>
+        <p class="inspector-help">Modifiers apply to key presses.</p>
+        <section class="key-tester" aria-label="Key tester">
+          <div class="tester-heading"><span class="section-kicker">Key tester</span><span id="testerCount" class="tester-count"></span></div>
+          <button id="testerToggle" class="button button-quiet" disabled>Start key tester</button>
+          <ol id="testerLog" class="tester-log" aria-live="polite"></ol>
+        </section>
+      </aside>
+    </section>
+
+    <section class="palette" aria-label="Key palette">
+      <nav id="paletteRail" class="palette-rail"></nav>
+      <div id="paletteKeys" class="palette-keys"></div>
+    </section>
+
+    <span id="dirtyState" class="save-state dirty-indicator">Not connected</span>
+
+    <dialog id="macroDialog" class="macro-dialog">
+      <form method="dialog" class="macro-dialog-card">
+        <div class="tester-heading"><span id="macroDialogTitle" class="section-kicker">New macro</span><button value="cancel" class="tester-clear">Close</button></div>
+        <label class="macro-input-label" for="macroName">Name</label>
+        <input id="macroName" class="macro-input" autocomplete="off" placeholder="Example: Terminal">
+        <div class="macro-modes" role="tablist" aria-label="Macro type">
+          <button type="button" class="macro-mode active" data-macro-mode="text">Text</button>
+          <button type="button" class="macro-mode" data-macro-mode="combo">Key combos</button>
+        </div>
+        <label id="macroInputLabel" class="macro-input-label" for="macroInput">Text to type</label>
+        <textarea id="macroInput" class="macro-input" rows="3" autocomplete="off" spellcheck="false"></textarea>
+        <select id="macroPreset" class="macro-input" hidden></select>
+        <p id="macroInputHint" class="macro-input-hint"></p>
+        <p id="macroError" class="macro-input-hint macro-error" aria-live="polite"></p>
+        <div class="macro-dialog-actions">
+          <button type="button" id="macroDelete" class="button button-quiet" hidden>Delete</button>
+          <button type="button" id="macroCancel" class="button button-quiet">Cancel</button>
+          <button type="button" id="macroSave" class="button button-accent">Save macro</button>
+        </div>
+      </form>
+    </dialog>
+
+    <footer>
+      <span>Needs Chrome or Edge over localhost, or the desktop app.</span>
+      <span>Key changes apply immediately and Save keeps them after a restart. Macros and knob changes save straight away.</span>
+    </footer>
+  </main>
+  <script src="studio.js"></script>
+  <script src="keys.js"></script>
+  <script src="macros.js"></script>
+  <script src="subsystems.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

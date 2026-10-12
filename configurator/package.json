@@ -1,0 +1,41 @@
+{
+  "name": "macropad-configurator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Configurator for the ZMK macropad (ZMK Studio protocol)",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "web": "node serve.cjs",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.macropad.configurator",
+    "productName": "Macropad Configurator",
+    "files": [
+      "desktop/**/*",
+      "build/**/*",
+      "index.html",
+      "app.js",
+      "studio.js",
+      "keys.js",
+      "macros.js",
+      "subsystems.js",
+      "style.css"
+    ],
+    "icon": "build/icon.ico",
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "Macropad-Configurator-Portable.exe"
+    }
+  }
+}

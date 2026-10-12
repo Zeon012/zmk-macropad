@@ -40,3 +40,8 @@ The original firmware shipped every control as "None", so these are placeholders
 1. Push to GitHub; the Action produces `macropad-nice_nano.uf2` and `settings_reset-nice_nano.uf2`.
 2. Double-tap reset, then drop `settings_reset` on the `NICENANO` drive, then the macropad `.uf2`.
 3. Pair over Bluetooth ("Macropad"), or plug in USB. For ZMK Studio, hold Fn and press the Studio-unlock key, then open https://zmk.studio.
+
+## Configurator
+
+`configurator/` is the desktop/web app for this pad: live key remapping, macros, knob bindings, a key tester and battery level, over the ZMK Studio connection.
+Run `configurator/start.cmd` (needs Node.js) and open the page in Chrome or Edge, then hold Game Mode and press Home on the pad to unlock it.
