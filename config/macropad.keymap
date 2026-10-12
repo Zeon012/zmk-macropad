@@ -6,6 +6,11 @@
 #include <dt-bindings/zmk/outputs.h>
 #include <dt-bindings/zmk/rgb.h>
 
+// Named so the configurator can find it and offer scrolling on the knob.
+&msc {
+    display-name = "Mouse Scroll";
+};
+
 / {
     behaviors {
         // Encoder defaults; each layer can be overridden at runtime.

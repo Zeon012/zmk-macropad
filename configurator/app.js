@@ -35,7 +35,7 @@ const STATUS_SUBSYSTEM = 'macropad__status';
 const STATUS_POLL_MS = 5000;
 const SET_BINDING_ERRORS = ['', 'That key position is not valid.', 'The pad rejected that action.',
                             'The pad rejected the settings for that action.'];
-const categoryOrder = ['BASIC', 'MEDIA', 'LAYERS', 'SPECIAL', 'APPS', 'MACRO', 'DEVICE'];
+const categoryOrder = ['BASIC', 'MEDIA', 'MOUSE', 'LAYERS', 'SPECIAL', 'APPS', 'MACRO', 'DEVICE'];
 
 const keymapPreview = document.querySelector('#keymapPreview');
 const connectButton = document.querySelector('#connectButton');
@@ -276,8 +276,10 @@ function renderPalette() {
       ? { ...binding, param1: Keys.baseOf(binding.param1) } : binding;
     button.className = `palette-key${candidate && Keys.sameBinding(candidate, entry.binding) ? ' active' : ''}`;
     button.textContent = entry.label;
-    button.disabled = !editable() || !available;
+    const wrongControl = Boolean(entry.knobOnly) && !selectedKnob;
+    button.disabled = !editable() || !available || wrongControl;
     if (client && !locked && !available) button.title = 'Not available in this firmware';
+    else if (wrongControl) button.title = 'Scrolling can only go on the knob: select a knob arrow first';
     button.addEventListener('click', () => assign(entry.binding));
     return button;
   }));
@@ -458,7 +460,8 @@ async function assignKnob(binding) {
     return;
   }
   const turns = knobBindings.get(layer.id);
-  const tapMs = turns?.[direction]?.tapMs || Knob.DEFAULT_TAP_MS;
+  // Scroll bindings bring their own tap length; everything else uses the default.
+  const tapMs = binding.tapMs || Knob.DEFAULT_TAP_MS;
   try {
     const reply = await subsystemCall(Knob, knobTurns[direction].request, {
       sensor_index: 0,

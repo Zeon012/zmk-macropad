@@ -42,6 +42,16 @@
   const combo = (label, mods, name) => kp(label, withMods(usage(PAGE_KEYBOARD, keyboardId(name)), mods));
   const plain = (label, behavior, param1 = 0, param2 = 0) => ({ label, binding: { behavior, param1, param2 } });
 
+  // ZMK packs a scroll as two signed 16-bit speeds: horizontal in the high half.
+  const SCROLL_SPEED = 80;
+  const SCROLL_TAP_MS = 24;
+  const scrollParam = (x, y) => ((((x & 0xffff) << 16) | (y & 0xffff)) >>> 0);
+  const scroll = (label, x, y) => ({
+    label, knobOnly: true,
+    binding: { behavior: 'Mouse Scroll', param1: scrollParam(x, y), param2: 0, tapMs: SCROLL_TAP_MS }
+  });
+  const signed16 = value => (value << 16) >> 16;
+
   const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
   const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
   const range = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => `F${from + i}`);
@@ -63,6 +73,12 @@
            combo('Win + X menu', WIN, 'X'), combo('Win + R Run', WIN, 'R'),
            combo('Win + E Explorer', WIN, 'E'), combo('Win + I Settings', WIN, 'I'),
            combo('Win + D Desktop', WIN, 'D'), combo('Win + L Lock', WIN, 'L')],
+    // Scrolling is knob-only: the pad cannot check a scroll binding on a key.
+    // 80 units a second for a 24 ms tap comes out as exactly one wheel notch.
+    MOUSE: [scroll('Scroll up', 0, SCROLL_SPEED), scroll('Scroll down', 0, -SCROLL_SPEED),
+            scroll('Scroll left', -SCROLL_SPEED, 0), scroll('Scroll right', SCROLL_SPEED, 0),
+            plain('Left click', 'Mouse Key Press', 1), plain('Right click', 'Mouse Key Press', 2),
+            plain('Middle click', 'Mouse Key Press', 4)],
     DEVICE: [plain('Bluetooth 1', 'Bluetooth', 3, 0), plain('Bluetooth 2', 'Bluetooth', 3, 1),
              plain('Bluetooth 3', 'Bluetooth', 3, 2), plain('Bluetooth clear', 'Bluetooth', 0, 0),
              plain('USB / Bluetooth', 'Output Selection', 0), plain('Studio unlock', 'Studio Unlock'),
@@ -95,6 +111,14 @@
       case 'Layer-Tap': return `${keyName(param2)} / hold: ${layerName(param1)}`;
       case 'Mod-Tap': return `${keyName(param2)} / hold: ${keyName(param1)}`;
       case 'Runtime Macro': return `Macro slot ${param1 + 1}`;
+      case 'Mouse Scroll': {
+        const x = signed16(param1 >>> 16);
+        const y = signed16(param1 & 0xffff);
+        if (y) return y > 0 ? 'Scroll up' : 'Scroll down';
+        return x > 0 ? 'Scroll right' : x < 0 ? 'Scroll left' : 'Scroll';
+      }
+      case 'Mouse Key Press':
+        return { 1: 'Left click', 2: 'Right click', 4: 'Middle click' }[param1] || 'Mouse button';
       case 'Bluetooth':
         if (param1 === 3) return `Bluetooth ${param2 + 1}`;
         return ['Bluetooth clear', 'Bluetooth next', 'Bluetooth previous', '', 'Bluetooth clear all',
