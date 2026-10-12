@@ -56,6 +56,29 @@ function configureSerialPermissions() {
   }
 }
 
+// Electron has no Bluetooth chooser of its own: pick the pad as soon as the scan
+// sees it, and cancel if it has not turned up after a while.
+const BLUETOOTH_SCAN_MS = 20000;
+const BLUETOOTH_NAME_PREFIX = 'Macropad';
+
+function configureBluetoothChooser(window) {
+  let pendingCallback;
+  let scanTimer;
+  const finish = deviceId => {
+    clearTimeout(scanTimer);
+    const callback = pendingCallback;
+    pendingCallback = undefined;
+    if (callback) callback(deviceId);
+  };
+  window.webContents.on('select-bluetooth-device', (event, devices, callback) => {
+    event.preventDefault();
+    if (!pendingCallback) scanTimer = setTimeout(() => finish(''), BLUETOOTH_SCAN_MS);
+    pendingCallback = callback;
+    const pad = devices.find(({ deviceName }) => (deviceName || '').startsWith(BLUETOOTH_NAME_PREFIX));
+    if (pad) finish(pad.deviceId);
+  });
+}
+
 async function createWindow() {
   configureSerialPermissions();
   const port = await startEditorServer();
@@ -64,13 +87,15 @@ async function createWindow() {
     height: 980,
     minWidth: 980,
     minHeight: 720,
-    backgroundColor: '#11151b',
+    backgroundColor: '#1c1a23',
+    autoHideMenuBar: true,
     icon: path.join(editorRoot, 'build', 'icon.ico'),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false
     }
   });
+  configureBluetoothChooser(window);
   await window.loadURL(`http://127.0.0.1:${port}/`);
 }
 

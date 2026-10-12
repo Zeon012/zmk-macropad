@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "web": "node serve.cjs",
-    "dist": "electron-builder --win portable"
+    "dist": "electron-builder --win portable --publish never"
   },
   "devDependencies": {
     "electron": "^39.0.0",

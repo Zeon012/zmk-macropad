@@ -1,8 +1,11 @@
 name: Build ZMK firmware
 on:
   push:
+    branches:
+      - "**"
     paths-ignore:
       - "configurator/**"
+      - ".github/workflows/release-configurator.yml"
   pull_request:
     paths-ignore:
       - "configurator/**"
