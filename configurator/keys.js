@@ -25,7 +25,8 @@
    [0x46, 'Print Screen'], [0x47, 'Scroll Lock'], [0x48, 'Pause'], [0x49, 'Insert'],
    [0x4a, 'Home'], [0x4b, 'Page Up'], [0x4c, 'Delete'], [0x4d, 'End'], [0x4e, 'Page Down'],
    [0x4f, 'Right'], [0x50, 'Left'], [0x51, 'Down'], [0x52, 'Up'],
-   [0xe0, 'Ctrl key'], [0xe1, 'Shift key'], [0xe2, 'Alt key'], [0xe3, 'Win key']
+   [0xe0, 'Ctrl key'], [0xe1, 'Shift key'], [0xe2, 'Alt key'], [0xe3, 'Win key'],
+   [0xe4, 'Right Ctrl'], [0xe5, 'Right Shift'], [0xe6, 'Right Alt'], [0xe7, 'Right Win'], [0x65, 'Menu']
   ].forEach(([id, name]) => add(id, name));
   for (let i = 0; i < 12; i++) add(0x3a + i, `F${i + 1}`);
   for (let i = 0; i < 12; i++) add(0x68 + i, `F${i + 13}`);
@@ -66,7 +67,7 @@
     MEDIA: [...consumerNames].map(([id, name]) => kp(name, usage(PAGE_CONSUMER, id))),
     SPECIAL: [...['Ctrl key', 'Shift key', 'Alt key', 'Win key', 'Up', 'Down', 'Left', 'Right',
                   'Home', 'End', 'Page Up', 'Page Down', 'Insert', 'Print Screen', 'Caps Lock',
-                  'Pause', 'Scroll Lock', '-', '=', '[', ']', '\\', ';', "'", '`', ',', '.', '/'].map(key)],
+                  'Pause', 'Scroll Lock', 'Menu', 'Right Ctrl', 'Right Shift', 'Right Alt', 'Right Win', '-', '=', '[', ']', '\\', ';', "'", '`', ',', '.', '/'].map(key)],
     APPS: [combo('LinkedIn', HYPER, 'L'), combo('OneNote', HYPER, 'N'), combo('Outlook', HYPER, 'O'),
            combo('PowerPoint', HYPER, 'P'), combo('Teams', HYPER, 'T'), combo('Word', HYPER, 'W'),
            combo('Excel', HYPER, 'X'), combo('Viva Engage', HYPER, 'Y'),

@@ -24,6 +24,8 @@
     layer_id: [6, Empty]
   };
   const ParameterSet = { param1: [1, ParameterDescription, true], param2: [2, ParameterDescription, true] };
+  // Sizes and positions are in hundredths of a key unit.
+  const KeyPhysicalAttrs = { width: [1, 'sint32'], height: [2, 'sint32'], x: [3, 'sint32'], y: [4, 'sint32'] };
   const CustomCall = { subsystem_index: [1, 'uint32'], payload: [2, 'bytes'] };
 
   const Request = {
@@ -47,7 +49,8 @@
       }],
       check_unsaved_changes: [3, 'bool'],
       save_changes: [4, 'bool'],
-      discard_changes: [5, 'bool']
+      discard_changes: [5, 'bool'],
+      get_physical_layouts: [6, 'bool']
     }],
     custom: [100, {
       list_custom_subsystems: [1, Empty],
@@ -76,7 +79,11 @@
       set_layer_binding: [2, 'uint32'],
       check_unsaved_changes: [3, 'bool'],
       save_changes: [4, { ok: [1, 'bool'], err: [2, 'uint32'] }],
-      discard_changes: [5, 'bool']
+      discard_changes: [5, 'bool'],
+      get_physical_layouts: [6, {
+        active_layout_index: [1, 'uint32'],
+        layouts: [2, { name: [1, 'string'], keys: [2, KeyPhysicalAttrs, true] }, true]
+      }]
     }],
     custom: [100, {
       list_custom_subsystems: [1, {

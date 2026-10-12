@@ -16,7 +16,7 @@ const legends = {
               '<path d="m8.8 10.7 5.9-3.4M8.8 13.3l5.9 3.4"/>'),
   gameMode: 'SCROLL<span class="legend-box">GAME<br>MODE</span>'
 };
-const controls = [
+const padControls = [
   ['Task 1', '1', 2, 1], ['Task 2', '2', 3, 1],
   ['Task 3', '3', 1, 2], ['Task 4', '4', 2, 2], ['Task 5', '5', 3, 2], ['Task 6', '6', 4, 2],
   ['Fast mode', legends.fast, 1, 3], ['Approve', legends.approve, 2, 3],
@@ -31,10 +31,20 @@ const knobTurns = {
         arrow: icon('<path d="M19 8a8 8 0 1 0 1 7"/><path d="M19 3v5h-5"/>') }
 };
 
+// The macropad gets its own drawing; any other device is drawn from the
+// layout it reports, and identified by its name.
+const PAD_NAME = 'Macropad';
+const UNLOCK_HINTS = {
+  [PAD_NAME]: 'Hold Game Mode and press the Print Screen key',
+  KB60: 'Hold Fn and press the \\ key'
+};
+const GENERIC_UNIT_PX = 56;
+const GENERIC_KEYS_PER_ROW = 14;
+
 const STATUS_SUBSYSTEM = 'macropad__status';
 const STATUS_POLL_MS = 5000;
-const SET_BINDING_ERRORS = ['', 'That key position is not valid.', 'The pad rejected that action.',
-                            'The pad rejected the settings for that action.'];
+const SET_BINDING_ERRORS = ['', 'That key position is not valid.', 'The device rejected that action.',
+                            'The device rejected the settings for that action.'];
 const categoryOrder = ['BASIC', 'MEDIA', 'MOUSE', 'LAYERS', 'SPECIAL', 'APPS', 'MACRO', 'DEVICE'];
 
 const keymapPreview = document.querySelector('#keymapPreview');
@@ -48,6 +58,8 @@ const dirtyState = document.querySelector('#dirtyState');
 const deviceName = document.querySelector('#deviceName');
 const layerTabs = document.querySelector('#layerTabs');
 const lockBanner = document.querySelector('#lockBanner');
+const lockHint = document.querySelector('#lockHint');
+const brand = document.querySelector('#brand');
 const notice = document.querySelector('#notice');
 const selectedName = document.querySelector('#selectedName');
 const selectedSummary = document.querySelector('#selectedSummary');
@@ -73,6 +85,9 @@ const macroDelete = document.querySelector('#macroDelete');
 const macroSave = document.querySelector('#macroSave');
 
 let transport;                 // the open USB or Bluetooth link, see transports.js
+let controls = padControls;    // the keys being drawn, in keymap order
+let connectedName = PAD_NAME;
+const isPad = () => connectedName === PAD_NAME;
 let client;
 let locked = true;
 let unsaved = false;
@@ -83,12 +98,12 @@ let activeLayer = 0;
 let selectedIndex = 0;
 let activeCategory = 'BASIC';
 let subsystems = new Map();    // custom subsystem identifier -> index on this device
-let macros = [];               // { slot, name } for each macro stored on the pad
+let macros = [];               // { slot, name } for each macro stored on the device
 let macroLimits = { maxNameLength: 24, keyPressBehaviorId: undefined };
 let editingMacro = null;       // the macro open in the dialog, or null for a new one
 let macroMode = 'text';
 let statusTimer;
-let statusLedState = 'off';    // 'usb', 'battery' or 'off', for the LED in the pad drawing
+let statusLedState = 'off';    // 'usb', 'battery' or 'off', for the LED in the device drawing
 let selectedKnob = null;       // 'cw' or 'ccw' while a knob turn is selected instead of a key
 let knobBindings = new Map();  // layer id -> { cw, ccw }, each a binding plus tapMs
 let testerOn = false;
@@ -123,7 +138,7 @@ function showNotice(text = '', isError = false) {
 }
 
 function describeError(error) {
-  if (error instanceof StudioError && error.code === 'UNLOCK_REQUIRED') return 'The pad is locked.';
+  if (error instanceof StudioError && error.code === 'UNLOCK_REQUIRED') return 'The device is locked.';
   return error.message || String(error);
 }
 
@@ -131,7 +146,7 @@ function setUnsaved(value) {
   unsaved = value;
   if (!client) dirtyState.textContent = 'Not connected';
   else if (locked) dirtyState.textContent = 'Locked';
-  else dirtyState.textContent = value ? 'Unsaved changes: the pad forgets them on restart' : 'All changes saved';
+  else dirtyState.textContent = value ? 'Unsaved changes: the device forgets them on restart' : 'All changes saved';
   dirtyState.style.color = value && editable() ? '#f4d878' : '#d6e9d9';
   saveButton.disabled = !editable() || !value;
   discardButton.disabled = !editable() || !value;
@@ -150,8 +165,64 @@ function renderLayerTabs() {
   }));
 }
 
+function keyClasses(index) {
+  return `${!selectedKnob && index === selectedIndex ? ' selected' : ''}` +
+    `${pressedKeys.has(index) ? ' key-test-hit' : ''}${testerOn && testedKeys.has(index) ? ' tested' : ''}`;
+}
+
+// Cap colour for a drawn keyboard: letters and symbols, navigation, the rest.
+function genericCap(binding) {
+  if (!binding || binding.behavior !== 'Key Press') return 'mod';
+  const name = Keys.keyName(binding.param1);
+  if (['Space', 'Up', 'Down', 'Left', 'Right'].includes(name)) return 'accent';
+  return name.length === 1 ? 'alpha' : 'mod';
+}
+
+// Any device other than the macropad: keys placed where its layout says.
+function renderGenericBoard() {
+  knobCaption.hidden = true;
+  keymapPreview.className = `keymap-preview generic${editable() ? '' : ' disabled'}`;
+  if (!controls.length) {
+    const empty = document.createElement('p');
+    empty.className = 'board-empty';
+    empty.textContent = 'Unlock the keyboard to load its layout.';
+    keymapPreview.style.cssText = '';
+    keymapPreview.replaceChildren(empty);
+    return;
+  }
+  const right = Math.max(...controls.map(key => key.x + key.w));
+  const bottom = Math.max(...controls.map(key => key.y + key.h));
+  const available = keymapPreview.parentElement.clientWidth - 80;
+  const unit = Math.max(24, Math.min(GENERIC_UNIT_PX, Math.floor(available / (right / 100))));
+  keymapPreview.style.cssText = `width: ${(right / 100) * unit + 20}px; height: ${(bottom / 100) * unit + 20}px`;
+
+  const bindings = layers[activeLayer]?.bindings || [];
+  keymapPreview.replaceChildren(...controls.map((control, index) => {
+    const button = document.createElement('button');
+    button.className = `map-key generic-key cap-${genericCap(bindings[index])}${keyClasses(index)}`;
+    button.style.cssText = `left: ${(control.x / 100) * unit + 10}px; top: ${(control.y / 100) * unit + 10}px; ` +
+      `width: ${(control.w / 100) * unit - 6}px; height: ${(control.h / 100) * unit - 6}px`;
+    button.title = control.name;
+    const label = document.createElement('span');
+    label.className = 'generic-label';
+    label.textContent = bindings[index] ? labelFor(bindings[index]) : '';
+    button.append(label);
+    button.addEventListener('click', () => {
+      selectedIndex = index;
+      selectedKnob = null;
+      render();
+    });
+    return button;
+  }));
+}
+
 function renderKeymap() {
-  keymapPreview.classList.toggle('disabled', !editable());
+  if (!isPad()) {
+    renderGenericBoard();
+    return;
+  }
+  keymapPreview.className = `keymap-preview${editable() ? '' : ' disabled'}`;
+  keymapPreview.style.cssText = '';
   const knob = document.createElement('div');
   knob.className = 'knob-cluster';
   knob.style.cssText = 'grid-column: 1; grid-row: 1';
@@ -184,8 +255,7 @@ function renderKeymap() {
   const bindings = layers[activeLayer]?.bindings || [];
   const keys = controls.map((control, index) => {
     const button = document.createElement('button');
-    button.className = `map-key cap-${control.cap}${!selectedKnob && index === selectedIndex ? ' selected' : ''}` +
-      `${pressedKeys.has(index) ? ' key-test-hit' : ''}${testerOn && testedKeys.has(index) ? ' tested' : ''}`;
+    button.className = `map-key cap-${control.cap}${keyClasses(index)}`;
     button.style.cssText = `grid-column: ${control.column}; grid-row: ${control.row}`;
     button.title = control.name;
     const symbol = document.createElement('span');
@@ -213,7 +283,7 @@ function renderKeymap() {
 function renderInspector() {
   const binding = currentBinding();
   selectedKicker.textContent = selectedKnob ? 'Selected knob turn' : 'Selected key';
-  selectedName.textContent = selectedKnob ? knobTurns[selectedKnob].name : controls[selectedIndex].name;
+  selectedName.textContent = selectedKnob ? knobTurns[selectedKnob].name : controls[selectedIndex]?.name || 'No key';
   selectedSummary.textContent = binding ? labelFor(binding) : 'Not loaded';
 
   const isKeyPress = Boolean(binding) && binding.behavior === 'Key Press';
@@ -262,7 +332,7 @@ function renderPalette() {
   if (!entries.length) {
     const empty = document.createElement('span');
     empty.className = 'palette-empty';
-    empty.textContent = 'Connect and unlock the pad to see its layers.';
+    empty.textContent = 'Connect and unlock the device to see its layers.';
     paletteKeys.replaceChildren(empty);
     return;
   }
@@ -334,6 +404,8 @@ function renderTester() {
 
 function render() {
   lockBanner.hidden = !client || !locked;
+  lockHint.textContent = `${UNLOCK_HINTS[connectedName] || 'Press its Studio unlock key'} to unlock it for editing.`;
+  brand.textContent = (client ? connectedName : 'Macro pad').toUpperCase();
   bluetoothButton.hidden = Boolean(transport);
   renderTester();
   renderLayerTabs();
@@ -362,7 +434,7 @@ async function assign(binding) {
   }
   if (previous.behavior === 'Studio Unlock' && binding.behavior !== 'Studio Unlock' &&
       countBindings('Studio Unlock') === 1 &&
-      !confirm('This is the only Studio unlock key. Without one you cannot unlock the pad for editing ' +
+      !confirm('This is the only Studio unlock key. Without one you cannot unlock the device for editing ' +
                'again until you reflash the settings reset file. Replace it anyway?')) {
     return;
   }
@@ -373,7 +445,7 @@ async function assign(binding) {
       binding: { behavior_id: behaviorId, param1: binding.param1 >>> 0, param2: binding.param2 >>> 0 }
     });
     if (result !== 0) {
-      showNotice(SET_BINDING_ERRORS[result] || 'The pad rejected the change.', true);
+      showNotice(SET_BINDING_ERRORS[result] || 'The device rejected the change.', true);
       return;
     }
     layer.bindings[selectedIndex] = { behavior: binding.behavior, param1: binding.param1 >>> 0, param2: binding.param2 >>> 0 };
@@ -393,9 +465,14 @@ async function customCall(identifier, payload) {
   return reply.payload || new Uint8Array();
 }
 
+// Official ZMK has no custom subsystems and rejects the question; that just
+// means the device has none of the add-on features.
 async function loadSubsystems() {
-  const reply = await client.call('custom', 'list_custom_subsystems', {});
-  subsystems = new Map(reply.subsystems.map(subsystem => [subsystem.identifier ?? '', subsystem.index ?? 0]));
+  subsystems = new Map();
+  try {
+    const reply = await client.call('custom', 'list_custom_subsystems', {});
+    subsystems = new Map(reply.subsystems.map(subsystem => [subsystem.identifier ?? '', subsystem.index ?? 0]));
+  } catch {}
 }
 
 // Reply is [version, battery percent, flags, Bluetooth profile]. Flags: bit 0 USB
@@ -430,7 +507,7 @@ async function refreshStatus() {
 async function subsystemCall(spec, type, value = {}) {
   const request = ZmkStudio.encode(spec.Request, { [type]: value });
   const response = ZmkStudio.decode(spec.Response, await customCall(spec.SUBSYSTEM, request));
-  if (response.error) throw new Error(response.error.message || 'The pad rejected the request.');
+  if (response.error) throw new Error(response.error.message || 'The device rejected the request.');
   return response[type] ?? response.ok ?? {};
 }
 
@@ -468,9 +545,9 @@ async function assignKnob(binding) {
       layer: layer.id,
       binding: { behavior_id: behaviorId, param1: binding.param1 >>> 0, param2: binding.param2 >>> 0, tap_ms: tapMs }
     });
-    if (!reply.success) throw new Error('The pad did not accept the knob change.');
+    if (!reply.success) throw new Error('The device did not accept the knob change.');
     knobBindings.set(layer.id, { ...turns, [direction]: { behavior: binding.behavior, param1: binding.param1 >>> 0, param2: binding.param2 >>> 0, tapMs } });
-    showNotice(`${knobTurns[direction].name} saved to the pad.`);
+    showNotice(`${knobTurns[direction].name} saved to the device.`);
   } catch (error) {
     showNotice(describeError(error), true);
   }
@@ -515,11 +592,11 @@ function handleKeyStream(payload) {
 async function macroCall(type, value = {}) {
   const request = ZmkStudio.encode(Macros.Request, { [type]: value });
   const response = ZmkStudio.decode(Macros.Response, await customCall(Macros.SUBSYSTEM, request));
-  if (response.error) throw new Error(response.error.message || 'The pad rejected the macro change.');
+  if (response.error) throw new Error(response.error.message || 'The device rejected the macro change.');
   return response[type] ?? response.status ?? {};
 }
 
-// The macro list and limits can be read while the pad is locked.
+// The macro list and limits can be read while the device is locked.
 async function loadMacros() {
   if (!subsystems.has(Macros.SUBSYSTEM)) {
     macros = [];
@@ -598,14 +675,14 @@ async function saveMacro() {
       await macroCall('create_macro', { name, persist: false });
       await loadMacros();
       const created = macros.find(macro => macro.name === name);
-      if (!created) throw new Error('The pad did not report the new macro.');
+      if (!created) throw new Error('The device did not report the new macro.');
       slot = created.slot;
     }
     for (const step of converted.steps) await macroCall('append_macro_step', { slot, step, persist: false });
     await macroCall('save_macros');
     await loadMacros();
     macroDialog.close();
-    showNotice(`Macro "${editingMacro ? editingMacro.name : name}" saved to the pad.`);
+    showNotice(`Macro "${editingMacro ? editingMacro.name : name}" saved to the device.`);
   } catch (error) {
     // Drop the half-written macro and go back to what is stored.
     try { await macroCall('discard_macros'); } catch {}
@@ -633,6 +710,26 @@ async function deleteMacro() {
   render();
 }
 
+// Builds the key list for a device other than the macropad from the layout
+// it reports. A layout with no key positions falls back to a plain grid.
+async function loadLayout() {
+  const keyCount = layers[0]?.bindings.length || 0;
+  let keys = [];
+  try {
+    const reply = await client.call('keymap', 'get_physical_layouts');
+    keys = reply.layouts[reply.active_layout_index ?? 0]?.keys || [];
+  } catch {}
+  if (keys.length !== keyCount) {
+    keys = Array.from({ length: keyCount }, (_, index) => ({
+      x: (index % GENERIC_KEYS_PER_ROW) * 100, y: Math.floor(index / GENERIC_KEYS_PER_ROW) * 100
+    }));
+  }
+  controls = keys.map((key, index) => ({
+    name: `Key ${index + 1}`, x: key.x ?? 0, y: key.y ?? 0, w: key.width ?? 100, h: key.height ?? 100
+  }));
+  if (selectedIndex >= controls.length) selectedIndex = 0;
+}
+
 async function loadKeymap() {
   const keymap = await client.call('keymap', 'get_keymap');
   layers = keymap.layers.map(layer => ({
@@ -650,7 +747,7 @@ async function loadKeymap() {
 
 // Needs an unlocked pad: behavior details and the keymap are both secured.
 async function loadDevice() {
-  showNotice('Reading the pad...');
+  showNotice('Reading the device...');
   const { behaviors } = await client.call('behaviors', 'list_all_behaviors');
   behaviorNames = new Map();
   behaviorIds = new Map();
@@ -662,6 +759,7 @@ async function loadDevice() {
   }
   await loadMacros();
   await loadKeymap();
+  if (!isPad()) await loadLayout();
   await loadKnob();
   showNotice();
 }
@@ -694,6 +792,9 @@ async function closeConnection(message = 'Disconnected') {
   const activeTransport = transport;
   transport = undefined;
   client = undefined;
+  controls = padControls;
+  connectedName = PAD_NAME;
+  selectedIndex = 0;
   locked = true;
   layers = [];
   unsaved = false;
@@ -718,7 +819,7 @@ async function closeConnection(message = 'Disconnected') {
 // `open` is Transports.openSerial or Transports.openBluetooth.
 async function connect(open) {
   if (transport) {
-    // Leave the pad quiet: it would otherwise keep streaming key presses.
+    // Leave the device quiet: it would otherwise keep streaming key presses.
     if (testerOn) try { await subsystemCall(KeyStream, 'disable_stream'); } catch {}
     await closeConnection();
     return;
@@ -735,7 +836,12 @@ async function connect(open) {
     statusDot.classList.add('connected');
     statusText.textContent = `Connected over ${transport.label}`;
     connectButton.textContent = 'Disconnect';
-    deviceName.textContent = info.name || 'ZMK device';
+    connectedName = info.name || 'ZMK device';
+    deviceName.textContent = connectedName;
+    if (!isPad()) {
+      controls = [];
+      selectedIndex = 0;
+    }
     showNotice();
     render();
     await loadSubsystems();
@@ -748,7 +854,7 @@ async function connect(open) {
     await closeConnection(absent ? 'No pad selected' : 'Connection failed');
     if (!absent) showNotice(describeError(error), true);
     else if (open === Transports.openBluetooth) {
-      showNotice('The pad did not show up over Bluetooth. It only announces itself while unlocked: hold Game Mode ' +
+      showNotice('The device did not show up over Bluetooth. It only announces itself while unlocked: hold Game Mode ' +
                  'and press Print Screen, then try again. It also has to be paired with Windows.', true);
     }
   }
@@ -761,9 +867,9 @@ saveButton.addEventListener('click', async () => {
     const result = await client.call('keymap', 'save_changes');
     if (result.ok) {
       unsaved = false;
-      showNotice('Saved to the pad.');
+      showNotice('Saved to the device.');
     } else {
-      showNotice('The pad could not save the keymap.', true);
+      showNotice('The device could not save the keymap.', true);
     }
   } catch (error) {
     showNotice(describeError(error), true);
@@ -771,7 +877,7 @@ saveButton.addEventListener('click', async () => {
   render();
 });
 discardButton.addEventListener('click', async () => {
-  if (!confirm('Discard unsaved changes and go back to what is saved on the pad?')) return;
+  if (!confirm('Discard unsaved changes and go back to what is saved on the device?')) return;
   try {
     await client.call('keymap', 'discard_changes');
     await loadKeymap();
