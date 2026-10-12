@@ -3,7 +3,8 @@
  * subsystem. The payload is raw bytes rather than a protobuf message:
  *
  *   request:  [command]            command 1 = get status
- *   response: [version, battery_percent, flags, bluetooth_profile]
+ *   response: [version, battery_percent, flags, bluetooth_profile,
+ *              six bytes of the pad's Bluetooth address, first octet first]
  *             flags bit 0 = USB power present
  *             flags bit 1 = the selected Bluetooth profile's host is connected
  *             flags bit 2 = the selected Bluetooth profile has no host (pairing mode)
@@ -25,6 +26,7 @@
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_BLE)
+#include <zephyr/bluetooth/bluetooth.h>
 #include <zmk/ble.h>
 #endif
 
@@ -47,7 +49,7 @@ ZMK_RPC_CUSTOM_SUBSYSTEM(macropad__status, &macropad_status_meta, macropad_statu
 
 /* The response is encoded after the handler returns, possibly more than once,
  * so it has to live in static storage. */
-static uint8_t response[4];
+static uint8_t response[10];
 
 static bool encode_response_payload(pb_ostream_t *stream, const pb_field_t *field,
                                     void *const *arg) {
@@ -80,6 +82,15 @@ static bool macropad_status_handle_request(const zmk_custom_CallRequest *request
         flags |= FLAG_BT_PAIRING;
     }
     profile = (uint8_t)zmk_ble_active_profile_index();
+
+    /* The identity address is what a paired host sees, so the configurator
+     * can pick out this exact pad when it connects over Bluetooth. */
+    bt_addr_le_t identity;
+    size_t identity_count = 1;
+    bt_id_get(&identity, &identity_count);
+    for (size_t i = 0; i < sizeof(identity.a.val); i++) {
+        response[4 + i] = identity_count > 0 ? identity.a.val[sizeof(identity.a.val) - 1 - i] : 0;
+    }
 #endif
 
     response[0] = STATUS_VERSION;

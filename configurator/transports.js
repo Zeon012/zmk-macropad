@@ -15,6 +15,9 @@
   // Fits the smallest Bluetooth packet, so no write needs a long-write the pad lacks.
   const BLUETOOTH_CHUNK = 20;
   const NAME_PREFIX = 'Macropad';
+  // Where the pad's Bluetooth address is remembered once it has been seen over USB.
+  const BLUETOOTH_ADDRESS_KEY = 'padBluetoothAddress';
+  const isDesktopApp = /Electron/.test(navigator.userAgent);
 
   async function openSerial(onData, onClosed) {
     if (!('serial' in navigator)) throw new Error('This browser cannot use USB serial. Use Chrome or Edge.');
@@ -55,10 +58,14 @@
   // it is advertising and shows up in the chooser.
   async function openBluetooth(onData, onClosed) {
     if (!('bluetooth' in navigator)) throw new Error('This browser cannot use Bluetooth. Use Chrome or Edge.');
-    const device = await navigator.bluetooth.requestDevice({
-      filters: [{ namePrefix: NAME_PREFIX }],
-      optionalServices: [STUDIO_SERVICE]
-    });
+    // The desktop app picks the device itself, by address when it knows one,
+    // so it scans for everything. A browser shows a chooser, filtered by name.
+    let knownAddress = null;
+    try { knownAddress = localStorage.getItem(BLUETOOTH_ADDRESS_KEY); } catch {}
+    const selection = isDesktopApp && knownAddress
+      ? { acceptAllDevices: true }
+      : { filters: [{ namePrefix: NAME_PREFIX }] };
+    const device = await navigator.bluetooth.requestDevice({ ...selection, optionalServices: [STUDIO_SERVICE] });
     let closed = false;
     const onDisconnected = () => {
       if (!closed) onClosed('Bluetooth disconnected');
@@ -104,5 +111,5 @@
     };
   }
 
-  root.MacropadTransports = { openSerial, openBluetooth };
+  root.MacropadTransports = { openSerial, openBluetooth, BLUETOOTH_ADDRESS_KEY };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

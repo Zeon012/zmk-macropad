@@ -398,7 +398,16 @@ async function loadSubsystems() {
   subsystems = new Map(reply.subsystems.map(subsystem => [subsystem.identifier ?? '', subsystem.index ?? 0]));
 }
 
-// Reply is [version, battery percent, flags, Bluetooth profile]. Flags: bit 0 USB
+// The desktop app reads this back to connect to this exact pad over Bluetooth
+// instead of the first device with a matching name.
+function rememberBluetoothAddress(bytes) {
+  if (bytes.length !== 6 || bytes.every(byte => byte === 0)) return;
+  const address = [...bytes].map(byte => byte.toString(16).padStart(2, '0')).join(':').toUpperCase();
+  try { localStorage.setItem(Transports.BLUETOOTH_ADDRESS_KEY, address); } catch {}
+}
+
+// Reply is [version, battery percent, flags, Bluetooth profile, six address
+// bytes]. Flags: bit 0 USB
 // power, bit 1 Bluetooth host connected, bit 2 pairing mode, bit 3 Bluetooth available.
 async function refreshStatus() {
   if (!client || !subsystems.has(STATUS_SUBSYSTEM)) {
@@ -407,8 +416,10 @@ async function refreshStatus() {
     return;
   }
   try {
-    const [version, percent, flags, profile = 0] = await customCall(STATUS_SUBSYSTEM, Uint8Array.of(1));
+    const status = await customCall(STATUS_SUBSYSTEM, Uint8Array.of(1));
+    const [version, percent, flags, profile = 0] = status;
     if (version !== 1) return;
+    rememberBluetoothAddress(status.subarray(4, 10));
     batteryStatus.textContent = `Battery ${percent}%${flags & 1 ? ' · USB power' : ''}`;
     batteryStatus.hidden = false;
     const state = flags & 2 ? 'connected' : flags & 4 ? 'pairing mode' : 'paired, host not connected';
@@ -747,6 +758,10 @@ async function connect(open) {
     const absent = error.name === 'NotFoundError';
     await closeConnection(absent ? 'No pad selected' : 'Connection failed');
     if (!absent) showNotice(describeError(error), true);
+    else if (open === Transports.openBluetooth) {
+      showNotice('The pad did not show up over Bluetooth. It only announces itself while unlocked: hold Game Mode ' +
+                 'and press Print Screen, then try again. It also has to be paired with Windows.', true);
+    }
   }
 }
 
