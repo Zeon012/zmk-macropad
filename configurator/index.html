@@ -16,7 +16,8 @@
       <div class="connection">
         <span id="statusDot" class="status-dot"></span>
         <span id="statusText">Disconnected</span>
-        <button id="connectButton" class="button button-primary">Connect device</button>
+        <button id="connectButton" class="button button-primary">Connect USB</button>
+        <button id="bluetoothButton" class="button button-quiet" title="Unlock the pad first: hold Game Mode and press Print Screen">Connect Bluetooth</button>
         <button id="saveButton" class="button button-accent" disabled>Save</button>
         <button id="discardButton" class="button button-quiet" disabled>Discard</button>
       </div>
@@ -87,10 +88,11 @@
     </dialog>
 
     <footer>
-      <span>Needs Chrome or Edge over localhost, or the desktop app.</span>
+      <span>Needs Chrome or Edge. For Bluetooth, pair the pad in Windows and unlock it before connecting.</span>
       <span>Key changes apply immediately and Save keeps them after a restart. Macros and knob changes save straight away.</span>
     </footer>
   </main>
+  <script src="transports.js"></script>
   <script src="studio.js"></script>
   <script src="keys.js"></script>
   <script src="macros.js"></script>

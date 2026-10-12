@@ -35,9 +35,16 @@ config MACROPAD_STATUS_RPC
 config MACROPAD_STATUS_LED
     bool "Show Bluetooth and battery state on an RGB LED"
     depends on ZMK_BLE
+    select PWM
     default y
     help
-      Drives the red, green and blue pins named by status-led-gpios in the
-      zephyr,user node: a fast blink while the selected Bluetooth profile is
-      waiting to be paired and a short flash every two seconds while a paired
-      host is not connected; otherwise green on USB power and red on battery.
+      Drives the status_led_red, status_led_green and status_led_blue PWM
+      LEDs: a fast blink while the selected Bluetooth profile is waiting to be
+      paired and a short flash every two seconds while a paired host is not
+      connected; otherwise green on USB power and red on battery.
+
+config MACROPAD_STATUS_LED_BRIGHTNESS
+    int "Status LED brightness in percent"
+    depends on MACROPAD_STATUS_LED
+    range 1 100
+    default 15

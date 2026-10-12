@@ -3,9 +3,7 @@ const Keys = MacropadKeys;
 const Macros = MacropadMacros;
 const { Knob, KeyStream } = MacropadSubsystems;
 
-// ZMK's USB ids, and the baud rate ZMK Studio uses for the serial transport.
-const USB_FILTER = { usbVendorId: 0x1d50, usbProductId: 0x615e };
-const BAUD_RATE = 12500;
+const Transports = MacropadTransports;
 
 // Key positions in keymap order (the matrix transform in macropad.overlay).
 // Legends drawn like the printed keycaps.
@@ -41,6 +39,7 @@ const categoryOrder = ['BASIC', 'MEDIA', 'LAYERS', 'SPECIAL', 'APPS', 'MACRO', '
 
 const keymapPreview = document.querySelector('#keymapPreview');
 const connectButton = document.querySelector('#connectButton');
+const bluetoothButton = document.querySelector('#bluetoothButton');
 const saveButton = document.querySelector('#saveButton');
 const discardButton = document.querySelector('#discardButton');
 const statusText = document.querySelector('#statusText');
@@ -73,9 +72,7 @@ const macroError = document.querySelector('#macroError');
 const macroDelete = document.querySelector('#macroDelete');
 const macroSave = document.querySelector('#macroSave');
 
-let port;
-let writer;
-let reader;
+let transport;                 // the open USB or Bluetooth link, see transports.js
 let client;
 let locked = true;
 let unsaved = false;
@@ -335,6 +332,7 @@ function renderTester() {
 
 function render() {
   lockBanner.hidden = !client || !locked;
+  bluetoothButton.hidden = Boolean(transport);
   renderTester();
   renderLayerTabs();
   renderKeymap();
@@ -689,29 +687,9 @@ function handleNotification(notification) {
   }
 }
 
-async function readLoop(activeClient) {
-  reader = port.readable.getReader();
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      activeClient.receive(value);
-    }
-  } catch (error) {
-    if (port) await closeConnection(error.message);
-  } finally {
-    try { reader?.releaseLock(); } catch {}
-    reader = undefined;
-  }
-}
-
 async function closeConnection(message = 'Disconnected') {
-  const activePort = port;
-  const activeReader = reader;
-  const activeWriter = writer;
-  port = undefined;
-  reader = undefined;
-  writer = undefined;
+  const activeTransport = transport;
+  transport = undefined;
   client = undefined;
   locked = true;
   layers = [];
@@ -726,42 +704,37 @@ async function closeConnection(message = 'Disconnected') {
   batteryStatus.hidden = true;
   bluetoothStatus.hidden = true;
   if (macroDialog.open) macroDialog.close();
-  try { await activeReader?.cancel(); } catch {}
-  try { activeReader?.releaseLock(); } catch {}
-  try { activeWriter?.releaseLock(); } catch {}
-  try { await activePort?.close(); } catch {}
+  await activeTransport?.close();
   statusDot.classList.remove('connected');
   statusText.textContent = message;
-  connectButton.textContent = 'Connect device';
+  connectButton.textContent = 'Connect USB';
   deviceName.textContent = 'No device';
   render();
 }
 
-async function connect() {
-  if (!('serial' in navigator)) {
-    statusText.textContent = 'Use Chrome or Edge';
-    return;
-  }
-  if (port) {
+// `open` is Transports.openSerial or Transports.openBluetooth.
+async function connect(open) {
+  if (transport) {
     // Leave the pad quiet: it would otherwise keep streaming key presses.
     if (testerOn) try { await subsystemCall(KeyStream, 'disable_stream'); } catch {}
     await closeConnection();
     return;
   }
   try {
-    port = await navigator.serial.requestPort({ filters: [USB_FILTER] });
-    await port.open({ baudRate: BAUD_RATE });
-    writer = port.writable.getWriter();
-    client = new StudioClient(bytes => writer.write(bytes));
-    client.onNotification = handleNotification;
-    readLoop(client);
+    let activeClient;
+    transport = await open(bytes => activeClient?.receive(bytes),
+                           message => { if (client === activeClient) closeConnection(message); });
+    activeClient = new StudioClient(bytes => transport.write(bytes));
+    activeClient.onNotification = handleNotification;
+    client = activeClient;
 
     const info = await client.call('core', 'get_device_info');
     statusDot.classList.add('connected');
-    statusText.textContent = 'Connected';
+    statusText.textContent = `Connected over ${transport.label}`;
     connectButton.textContent = 'Disconnect';
     deviceName.textContent = info.name || 'ZMK device';
     showNotice();
+    render();
     await loadSubsystems();
     await refreshStatus();
     statusTimer = setInterval(refreshStatus, STATUS_POLL_MS);
@@ -774,11 +747,8 @@ async function connect() {
   }
 }
 
-navigator.serial?.addEventListener('disconnect', event => {
-  if (event.target === port || event.port === port) closeConnection('Device disconnected');
-});
-
-connectButton.addEventListener('click', connect);
+connectButton.addEventListener('click', () => connect(Transports.openSerial));
+bluetoothButton.addEventListener('click', () => connect(Transports.openBluetooth));
 saveButton.addEventListener('click', async () => {
   try {
     const result = await client.call('keymap', 'save_changes');

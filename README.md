@@ -19,7 +19,7 @@ Diodes are unchanged from the original: column bus -|>|- switch - row bus (catho
 | Encoder A | P1.04 | D8 |
 | Encoder B | P1.06 | D9 |
 | WS2812 data (23 LEDs) | P1.13 | D15 |
-| Status LED red | P0.02 | D19 |
+| Status LED red (PWM) | P0.02 | D19 |
 | Status LED green | P1.15 | D18 |
 | Status LED blue | P1.11 | D14 |
 

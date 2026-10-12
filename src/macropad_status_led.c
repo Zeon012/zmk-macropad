@@ -1,5 +1,6 @@
 /*
- * Power and Bluetooth status on an RGB LED (three GPIOs: red, green, blue).
+ * Power and Bluetooth status on an RGB LED (three PWM channels: red, green,
+ * blue), dimmed to CONFIG_MACROPAD_STATUS_LED_BRIGHTNESS percent.
  *
  * Power source, shown whenever nothing else is:
  *   green             running on USB power
@@ -20,7 +21,7 @@
  */
 
 #include <zephyr/devicetree.h>
-#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/pwm.h>
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -53,13 +54,11 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define BLUE BIT(2)
 #define OFF 0
 
-#define LED_NODE DT_PATH(zephyr_user)
-
 /* Order: red, green, blue. */
-static const struct gpio_dt_spec leds[] = {
-    GPIO_DT_SPEC_GET_BY_IDX(LED_NODE, status_led_gpios, 0),
-    GPIO_DT_SPEC_GET_BY_IDX(LED_NODE, status_led_gpios, 1),
-    GPIO_DT_SPEC_GET_BY_IDX(LED_NODE, status_led_gpios, 2),
+static const struct pwm_dt_spec leds[] = {
+    PWM_DT_SPEC_GET(DT_NODELABEL(status_led_red)),
+    PWM_DT_SPEC_GET(DT_NODELABEL(status_led_green)),
+    PWM_DT_SPEC_GET(DT_NODELABEL(status_led_blue)),
 };
 
 static const uint8_t profile_colors[] = {BLUE, GREEN | BLUE, RED | BLUE};
@@ -74,7 +73,9 @@ static K_WORK_DELAYABLE_DEFINE(status_led_work, status_led_tick);
 
 static void set_color(uint8_t color) {
     for (size_t i = 0; i < ARRAY_SIZE(leds); i++) {
-        gpio_pin_set_dt(&leds[i], (color & BIT(i)) != 0);
+        uint32_t pulse =
+            (color & BIT(i)) ? (leds[i].period / 100) * CONFIG_MACROPAD_STATUS_LED_BRIGHTNESS : 0;
+        pwm_set_pulse_dt(&leds[i], pulse);
     }
 }
 
@@ -147,11 +148,11 @@ ZMK_SUBSCRIPTION(macropad_status_led, zmk_ble_active_profile_changed);
 
 static int status_led_init(void) {
     for (size_t i = 0; i < ARRAY_SIZE(leds); i++) {
-        if (!gpio_is_ready_dt(&leds[i])) {
+        if (!pwm_is_ready_dt(&leds[i])) {
             LOG_ERR("Status LED pin %d is not ready", (int)i);
             return -ENODEV;
         }
-        gpio_pin_configure_dt(&leds[i], GPIO_OUTPUT_INACTIVE);
+        pwm_set_pulse_dt(&leds[i], 0);
     }
 
     k_work_reschedule(&status_led_work, K_MSEC(TICK_MS));
