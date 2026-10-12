@@ -5,9 +5,12 @@
 #include <zephyr/dt-bindings/pinctrl/nrf-pinctrl.h>
 
 / {
-    // Bluetooth status LED: the board's onboard LED on P0.15.
+    // Status RGB LED, common cathode: red on D19, green on D18, blue on D14.
+    // For a common-anode LED, change GPIO_ACTIVE_HIGH to GPIO_ACTIVE_LOW.
     zephyr,user {
-        bt-led-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+        status-led-gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>,
+                           <&gpio1 15 GPIO_ACTIVE_HIGH>,
+                           <&gpio1 11 GPIO_ACTIVE_HIGH>;
     };
 
     chosen {

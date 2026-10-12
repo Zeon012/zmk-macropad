@@ -32,11 +32,12 @@ config MACROPAD_STATUS_RPC
       Registers the macropad__status custom subsystem, which the configurator
       reads to show the battery level over USB or Bluetooth.
 
-config MACROPAD_BT_LED
-    bool "Show Bluetooth pairing and connection state on an LED"
+config MACROPAD_STATUS_LED
+    bool "Show Bluetooth and battery state on an RGB LED"
     depends on ZMK_BLE
     default y
     help
-      Blinks the LED named by bt-led-gpios in the zephyr,user node: fast while
-      the selected profile is waiting to be paired, a short flash every two
-      seconds while a paired host is not connected.
+      Drives the red, green and blue pins named by status-led-gpios in the
+      zephyr,user node: a fast blink while the selected Bluetooth profile is
+      waiting to be paired, a short flash every two seconds while a paired
+      host is not connected, and a red flash when the battery is low.
