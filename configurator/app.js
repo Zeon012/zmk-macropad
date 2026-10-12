@@ -23,7 +23,7 @@ const controls = [
   ['Task 3', '3', 1, 2], ['Task 4', '4', 2, 2], ['Task 5', '5', 3, 2], ['Task 6', '6', 4, 2],
   ['Fast mode', legends.fast, 1, 3], ['Approve', legends.approve, 2, 3],
   ['Reject', legends.reject, 3, 3], ['Share', legends.share, 4, 3],
-  ['Home', 'HOME', 2, 4, 'dark'], ['Break', 'BREAK', 3, 4, 'dark'], ['Game Mode', legends.gameMode, 4, 4, 'dark']
+  ['Print Screen', 'PRINT<span class="legend-sub">SCR</span>', 2, 4, 'dark'], ['Break', 'BREAK', 3, 4, 'dark'], ['Game Mode', legends.gameMode, 4, 4, 'dark']
 ].map(([name, legend, column, row, cap = 'light']) => ({ name, legend, column, row, cap }));
 
 const knobTurns = {
@@ -91,6 +91,7 @@ let macroLimits = { maxNameLength: 24, keyPressBehaviorId: undefined };
 let editingMacro = null;       // the macro open in the dialog, or null for a new one
 let macroMode = 'text';
 let statusTimer;
+let statusLedState = 'off';    // 'usb', 'battery' or 'off', for the LED in the pad drawing
 let selectedKnob = null;       // 'cw' or 'ccw' while a knob turn is selected instead of a key
 let knobBindings = new Map();  // layer id -> { cw, ccw }, each a binding plus tapMs
 let testerOn = false;
@@ -203,7 +204,13 @@ function renderKeymap() {
     });
     return button;
   });
-  keymapPreview.replaceChildren(...screws, knob, ...keys);
+  // The status LED sits in the empty top-right position and mirrors the real one.
+  const statusLed = document.createElement('span');
+  statusLed.className = `status-led ${statusLedState}`;
+  statusLed.style.cssText = 'grid-column: 4; grid-row: 1';
+  statusLed.title = { usb: 'Status LED: green on USB power', battery: 'Status LED: red on battery',
+                      off: 'Status LED' }[statusLedState];
+  keymapPreview.replaceChildren(...screws, knob, statusLed, ...keys);
 }
 
 function renderInspector() {
@@ -406,6 +413,11 @@ async function refreshStatus() {
     batteryStatus.hidden = false;
     const state = flags & 2 ? 'connected' : flags & 4 ? 'pairing mode' : 'paired, host not connected';
     bluetoothStatus.textContent = `Bluetooth ${profile + 1}: ${state}`;
+    const ledState = flags & 1 ? 'usb' : 'battery';
+    if (ledState !== statusLedState) {
+      statusLedState = ledState;
+      renderKeymap();
+    }
     bluetoothStatus.hidden = !(flags & 8);
   } catch {
     batteryStatus.hidden = true;
@@ -710,6 +722,7 @@ async function closeConnection(message = 'Disconnected') {
   selectedKnob = null;
   resetTester();
   clearInterval(statusTimer);
+  statusLedState = 'off';
   batteryStatus.hidden = true;
   bluetoothStatus.hidden = true;
   if (macroDialog.open) macroDialog.close();
