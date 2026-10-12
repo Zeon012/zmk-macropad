@@ -39,5 +39,5 @@ config MACROPAD_STATUS_LED
     help
       Drives the red, green and blue pins named by status-led-gpios in the
       zephyr,user node: a fast blink while the selected Bluetooth profile is
-      waiting to be paired, a short flash every two seconds while a paired
-      host is not connected, and a red flash when the battery is low.
+      waiting to be paired and a short flash every two seconds while a paired
+      host is not connected; otherwise green on USB power and red on battery.
