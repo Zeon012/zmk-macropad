@@ -5,6 +5,11 @@
 #include <zephyr/dt-bindings/pinctrl/nrf-pinctrl.h>
 
 / {
+    // Bluetooth status LED: the board's onboard LED on P0.15.
+    zephyr,user {
+        bt-led-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+    };
+
     chosen {
         zmk,kscan = &kscan0;
         zmk,physical-layout = &physical_layout0;

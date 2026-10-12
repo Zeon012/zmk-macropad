@@ -34,7 +34,7 @@ const knobTurns = {
 };
 
 const STATUS_SUBSYSTEM = 'macropad__status';
-const STATUS_POLL_MS = 60000;
+const STATUS_POLL_MS = 5000;
 const SET_BINDING_ERRORS = ['', 'That key position is not valid.', 'The pad rejected that action.',
                             'The pad rejected the settings for that action.'];
 const categoryOrder = ['BASIC', 'MEDIA', 'LAYERS', 'SPECIAL', 'APPS', 'MACRO', 'DEVICE'];
@@ -56,6 +56,7 @@ const modToggles = document.querySelector('#modToggles');
 const paletteRail = document.querySelector('#paletteRail');
 const paletteKeys = document.querySelector('#paletteKeys');
 const batteryStatus = document.querySelector('#batteryStatus');
+const bluetoothStatus = document.querySelector('#bluetoothStatus');
 const knobCaption = document.querySelector('#knobCaption');
 const selectedKicker = document.querySelector('#selectedKicker');
 const testerToggle = document.querySelector('#testerToggle');
@@ -390,19 +391,25 @@ async function loadSubsystems() {
   subsystems = new Map(reply.subsystems.map(subsystem => [subsystem.identifier ?? '', subsystem.index ?? 0]));
 }
 
-// Reply is [version, battery percent, flags]; flags bit 0 means USB power.
+// Reply is [version, battery percent, flags, Bluetooth profile]. Flags: bit 0 USB
+// power, bit 1 Bluetooth host connected, bit 2 pairing mode, bit 3 Bluetooth available.
 async function refreshStatus() {
   if (!client || !subsystems.has(STATUS_SUBSYSTEM)) {
     batteryStatus.hidden = true;
+    bluetoothStatus.hidden = true;
     return;
   }
   try {
-    const [version, percent, flags] = await customCall(STATUS_SUBSYSTEM, Uint8Array.of(1));
+    const [version, percent, flags, profile = 0] = await customCall(STATUS_SUBSYSTEM, Uint8Array.of(1));
     if (version !== 1) return;
     batteryStatus.textContent = `Battery ${percent}%${flags & 1 ? ' · USB power' : ''}`;
     batteryStatus.hidden = false;
+    const state = flags & 2 ? 'connected' : flags & 4 ? 'pairing mode' : 'paired, host not connected';
+    bluetoothStatus.textContent = `Bluetooth ${profile + 1}: ${state}`;
+    bluetoothStatus.hidden = !(flags & 8);
   } catch {
     batteryStatus.hidden = true;
+    bluetoothStatus.hidden = true;
   }
 }
 
@@ -704,6 +711,7 @@ async function closeConnection(message = 'Disconnected') {
   resetTester();
   clearInterval(statusTimer);
   batteryStatus.hidden = true;
+  bluetoothStatus.hidden = true;
   if (macroDialog.open) macroDialog.close();
   try { await activeReader?.cancel(); } catch {}
   try { activeReader?.releaseLock(); } catch {}
