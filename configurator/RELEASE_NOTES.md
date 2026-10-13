@@ -1,10 +1,14 @@
 Portable Windows app for configuring ZMK devices built from this project. No install: download `Macropad-Configurator-Portable.exe` and run it.
 
+## New in 1.0.2
+
+- **Device selector.** Choose Macropad, Keyboard (KB60) or Any device next to **Connect USB**. The app learns each device the first time it connects to it and opens the chosen one directly from then on. If it opens the wrong one before it has learned them, it says so; click **Connect USB** again for the next device.
+- Macros and the key tester now also work on the keyboard when its firmware includes them.
+
 ## New in 1.0.1
 
 - **Works with other ZMK Studio devices**, not only the macropad. A device other than the macropad is drawn from the layout it reports, with keys at their real sizes and positions. Built for the 64-key KB60 keyboard.
 - Features a device's firmware lacks (macros, knob, key tester, battery) switch themselves off.
-- With more than one device plugged in, each **Connect USB** takes the next one, so disconnect and reconnect to switch.
 - When a Bluetooth connection finds nothing, the app now says why: the pad only announces itself while unlocked.
 - Right Ctrl, Right Shift, Right Alt, Right Win and Menu are named and available on the SPECIAL tab.
 

@@ -45,14 +45,28 @@ function configureSerialPermissions() {
     callback(permission === 'serial');
   });
   let lastPortId;
-  defaultSession.on('select-serial-port', (event, portList, webContents, callback) => {
+  defaultSession.on('select-serial-port', async (event, portList, webContents, callback) => {
     event.preventDefault();
-    // Every ZMK device shares this USB id. With several plugged in, each
-    // Connect takes the next one, so reconnecting steps through them. An empty
-    // id cancels the request when none is present.
+    // Every ZMK device shares this USB id, so they are told apart by serial
+    // number. The page stores which device the user picked and the serial
+    // numbers it has learned; an empty id cancels when no device is present.
     const candidates = portList.filter(({ vendorId, productId }) =>
       Number(vendorId) === 0x1d50 && Number(productId) === 0x615e);
-    const next = candidates[(candidates.findIndex(({ portId }) => portId === lastPortId) + 1) % (candidates.length || 1)];
+    let wantedSerial = '';
+    try {
+      wantedSerial = await webContents.executeJavaScript(`(() => {
+        try {
+          const wanted = JSON.parse(localStorage.getItem('preferredDevice')) || '';
+          const known = JSON.parse(localStorage.getItem('knownDevices')) || {};
+          return known[wanted] || '';
+        } catch { return ''; }
+      })()`);
+    } catch {}
+    const chosen = wantedSerial &&
+      candidates.find(({ serialNumber }) => (serialNumber || '').toUpperCase() === wantedSerial.toUpperCase());
+    // Otherwise take the next one each time, so reconnecting steps through them.
+    const next = chosen ||
+      candidates[(candidates.findIndex(({ portId }) => portId === lastPortId) + 1) % (candidates.length || 1)];
     lastPortId = next ? next.portId : undefined;
     callback(next ? next.portId : '');
   });

@@ -38,6 +38,9 @@ const UNLOCK_HINTS = {
   [PAD_NAME]: 'Hold Game Mode and press the Print Screen key',
   KB60: 'Hold Fn and press the \\ key'
 };
+// Friendlier names for the selector; anything else shows under its own name.
+const DEVICE_LABELS = { [PAD_NAME]: 'Macropad', KB60: 'Keyboard (KB60)' };
+const deviceLabel = name => DEVICE_LABELS[name] || name;
 const GENERIC_UNIT_PX = 56;
 const GENERIC_KEYS_PER_ROW = 14;
 
@@ -50,6 +53,7 @@ const categoryOrder = ['BASIC', 'MEDIA', 'MOUSE', 'LAYERS', 'SPECIAL', 'APPS', '
 
 const keymapPreview = document.querySelector('#keymapPreview');
 const connectButton = document.querySelector('#connectButton');
+const deviceSelect = document.querySelector('#deviceSelect');
 const bluetoothButton = document.querySelector('#bluetoothButton');
 const saveButton = document.querySelector('#saveButton');
 const discardButton = document.querySelector('#discardButton');
@@ -131,6 +135,32 @@ function labelFor(binding) {
     return macro ? `Macro: ${macro.name}` : `Empty macro slot ${binding.param1 + 1}`;
   }
   return Keys.bindingLabel(binding, layerNameById);
+}
+
+function readStored(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+}
+
+function writeStored(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+
+const preferredDevice = () => readStored(Transports.PREFERRED_DEVICE_KEY, '');
+
+// Lists the two known devices plus any other the app has connected to.
+function renderDeviceSelect() {
+  const names = [...new Set([...Object.keys(DEVICE_LABELS), ...Object.keys(readStored(Transports.KNOWN_DEVICES_KEY, {}))])];
+  deviceSelect.replaceChildren(new Option('Any device', ''), ...names.map(name => new Option(deviceLabel(name), name)));
+  deviceSelect.value = names.includes(preferredDevice()) ? preferredDevice() : '';
+  deviceSelect.disabled = Boolean(transport);
+}
+
+// Each device's USB serial number is what lets the desktop app open the right
+// port next time without trying them in turn.
+function rememberDevice(name, serialBytes) {
+  if (!serialBytes?.length) return;
+  const serial = [...serialBytes].map(byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
+  writeStored(Transports.KNOWN_DEVICES_KEY, { ...readStored(Transports.KNOWN_DEVICES_KEY, {}), [name]: serial });
 }
 
 function showNotice(text = '', isError = false) {
@@ -408,6 +438,7 @@ function render() {
   lockHint.textContent = `${UNLOCK_HINTS[connectedName] || 'Press its Studio unlock key'} to unlock it for editing.`;
   brand.textContent = (client ? connectedName : 'Macro pad').toUpperCase();
   bluetoothButton.hidden = Boolean(transport);
+  renderDeviceSelect();
   renderTester();
   renderLayerTabs();
   renderKeymap();
@@ -838,6 +869,17 @@ async function connect(open) {
     statusText.textContent = `Connected over ${transport.label}`;
     connectButton.textContent = 'Disconnect';
     connectedName = info.name || 'ZMK device';
+    if (open === Transports.openSerial) {
+      rememberDevice(connectedName, info.serial_number);
+      const wanted = preferredDevice();
+      if (wanted && connectedName !== wanted) {
+        const got = deviceLabel(connectedName);
+        await closeConnection();
+        showNotice(`That was the ${got}, not the ${deviceLabel(wanted)}. Click Connect USB again to try the next ` +
+                   `device, and check the ${deviceLabel(wanted)} is plugged in.`, true);
+        return;
+      }
+    }
     deviceName.textContent = connectedName;
     if (!isPad()) {
       controls = [];
@@ -861,6 +903,7 @@ async function connect(open) {
   }
 }
 
+deviceSelect.addEventListener('change', () => writeStored(Transports.PREFERRED_DEVICE_KEY, deviceSelect.value));
 connectButton.addEventListener('click', () => connect(Transports.openSerial));
 bluetoothButton.addEventListener('click', () => connect(Transports.openBluetooth));
 saveButton.addEventListener('click', async () => {

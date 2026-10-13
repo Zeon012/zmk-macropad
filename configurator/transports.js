@@ -15,6 +15,11 @@
   // Fits the smallest Bluetooth packet, so no write needs a long-write the pad lacks.
   const BLUETOOTH_CHUNK = 20;
   const NAME_PREFIX = 'Macropad';
+  // Remembered in the browser's storage: the device the user wants, and the
+  // USB serial number of each device seen so far (the desktop app reads both
+  // to open the right port).
+  const PREFERRED_DEVICE_KEY = 'preferredDevice';
+  const KNOWN_DEVICES_KEY = 'knownDevices';
 
   async function openSerial(onData, onClosed) {
     if (!('serial' in navigator)) throw new Error('This browser cannot use USB serial. Use Chrome or Edge.');
@@ -104,5 +109,5 @@
     };
   }
 
-  root.MacropadTransports = { openSerial, openBluetooth };
+  root.MacropadTransports = { openSerial, openBluetooth, PREFERRED_DEVICE_KEY, KNOWN_DEVICES_KEY };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
