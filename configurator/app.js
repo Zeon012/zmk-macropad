@@ -41,6 +41,7 @@ const UNLOCK_HINTS = {
 const GENERIC_UNIT_PX = 56;
 const GENERIC_KEYS_PER_ROW = 14;
 
+const SUBSYSTEM_QUERY_TIMEOUT_MS = 1500;
 const STATUS_SUBSYSTEM = 'macropad__status';
 const STATUS_POLL_MS = 5000;
 const SET_BINDING_ERRORS = ['', 'That key position is not valid.', 'The device rejected that action.',
@@ -465,12 +466,12 @@ async function customCall(identifier, payload) {
   return reply.payload || new Uint8Array();
 }
 
-// Official ZMK has no custom subsystems and rejects the question; that just
-// means the device has none of the add-on features.
+// Official ZMK has no custom subsystems and never answers the question, so
+// this waits only briefly; no answer means none of the add-on features.
 async function loadSubsystems() {
   subsystems = new Map();
   try {
-    const reply = await client.call('custom', 'list_custom_subsystems', {});
+    const reply = await client.call('custom', 'list_custom_subsystems', {}, SUBSYSTEM_QUERY_TIMEOUT_MS);
     subsystems = new Map(reply.subsystems.map(subsystem => [subsystem.identifier ?? '', subsystem.index ?? 0]));
   } catch {}
 }

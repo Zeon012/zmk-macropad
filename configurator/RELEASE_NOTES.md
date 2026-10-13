@@ -1,24 +1,29 @@
-Portable Windows app for configuring the macropad. No install: download `Macropad-Configurator-Portable.exe` and run it.
+Portable Windows app for configuring ZMK devices built from this project. No install: download `Macropad-Configurator-Portable.exe` and run it.
+
+## New in 1.0.1
+
+- **Works with other ZMK Studio devices**, not only the macropad. A device other than the macropad is drawn from the layout it reports, with keys at their real sizes and positions. Built for the 64-key KB60 keyboard.
+- Features a device's firmware lacks (macros, knob, key tester, battery) switch themselves off.
+- With more than one device plugged in, each **Connect USB** takes the next one, so disconnect and reconnect to switch.
+- When a Bluetooth connection finds nothing, the app now says why: the pad only announces itself while unlocked.
+- Right Ctrl, Right Shift, Right Alt, Right Win and Menu are named and available on the SPECIAL tab.
 
 ## What it does
 
-- Remap every key on every layer, live, and save the result to the pad.
-- Create and edit macros: typed text, or key combos with pauses.
-- Set what the knob does per layer, including mouse scrolling.
-- Test keys: each press lights up on a drawing of the pad.
-- Show battery level and Bluetooth state.
+- Remap every key on every layer, live, and save the result to the device.
+- On the macropad: create and edit macros (typed text, or key combos with pauses), set what the knob does per layer including mouse scrolling, test keys on a drawing of the pad, and see battery level and Bluetooth state.
 
 ## Requirements
 
 - Windows 10 or 11, 64-bit.
-- A macropad running the firmware from this repository's `main` branch. It will not work with stock ZMK firmware, because it relies on the modules this firmware adds.
+- The macropad running the firmware from this repository's `main` branch, or another keyboard with ZMK Studio enabled over USB. The macropad's extra features rely on the modules its firmware adds.
 
 ## Connecting
 
-- **USB:** plug the pad in and click **Connect USB**.
-- **Bluetooth:** pair the pad in Windows first, unlock it, then click **Connect Bluetooth**. This path has had little testing on Windows; use USB if it fails.
+- **USB:** plug the device in and click **Connect USB**.
+- **Bluetooth (macropad):** pair it in Windows, unlock it, then click **Connect Bluetooth** within a few seconds. Use USB if it fails.
 
-To unlock the pad for editing, hold Game Mode and press Print Screen.
+To unlock for editing: on the macropad, hold Game Mode and press Print Screen; on the KB60, hold Fn and press `\`.
 
 ## Notes
 

@@ -44,12 +44,17 @@ function configureSerialPermissions() {
   defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
     callback(permission === 'serial');
   });
+  let lastPortId;
   defaultSession.on('select-serial-port', (event, portList, webContents, callback) => {
     event.preventDefault();
-    // ZMK's USB id; an empty id cancels the request when the pad is absent.
-    const padPort = portList.find(({ vendorId, productId }) =>
+    // Every ZMK device shares this USB id. With several plugged in, each
+    // Connect takes the next one, so reconnecting steps through them. An empty
+    // id cancels the request when none is present.
+    const candidates = portList.filter(({ vendorId, productId }) =>
       Number(vendorId) === 0x1d50 && Number(productId) === 0x615e);
-    callback(padPort ? padPort.portId : '');
+    const next = candidates[(candidates.findIndex(({ portId }) => portId === lastPortId) + 1) % (candidates.length || 1)];
+    lastPortId = next ? next.portId : undefined;
+    callback(next ? next.portId : '');
   });
   if (defaultSession.setDevicePermissionHandler) {
     defaultSession.setDevicePermissionHandler(({ deviceType }) => deviceType === 'serial');

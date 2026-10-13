@@ -330,15 +330,16 @@
     }
 
     // Resolves with the value of the named response member, or rejects with a
-    // StudioError (for example code 'UNLOCK_REQUIRED').
-    call(subsystem, type, value = true) {
+    // StudioError (for example code 'UNLOCK_REQUIRED'). `timeoutMs` overrides
+    // how long to wait for this one reply.
+    call(subsystem, type, value = true, timeoutMs = this.timeoutMs) {
       const run = async () => {
         const id = this.nextRequestId++;
         const reply = new Promise((resolve, reject) => {
           const timer = setTimeout(() => {
             if (this.pending && this.pending.id === id) this.pending = null;
             reject(new Error(`Timed out waiting for ${subsystem}.${type}`));
-          }, this.timeoutMs);
+          }, timeoutMs);
           this.pending = { id, resolve: response => { clearTimeout(timer); resolve(response); } };
         });
         await this.write(encodeRequest(id, subsystem, type, value));
