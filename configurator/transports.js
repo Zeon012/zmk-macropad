@@ -14,12 +14,20 @@
   const STUDIO_CHARACTERISTIC = '00000001-0196-6107-c967-c5cfb1c2482a';
   // Fits the smallest Bluetooth packet, so no write needs a long-write the pad lacks.
   const BLUETOOTH_CHUNK = 20;
-  const NAME_PREFIX = 'Macropad';
+  // Bluetooth names of the devices this app knows. The selector narrows the
+  // search to one of them; "Any device" looks for all.
+  const BLUETOOTH_NAMES = ['Macropad', 'KB60'];
   // Remembered in the browser's storage: the device the user wants, and the
   // USB serial number of each device seen so far (the desktop app reads both
   // to open the right port).
   const PREFERRED_DEVICE_KEY = 'preferredDevice';
   const KNOWN_DEVICES_KEY = 'knownDevices';
+
+  function bluetoothNames() {
+    let preferred = '';
+    try { preferred = JSON.parse(localStorage.getItem(PREFERRED_DEVICE_KEY)) || ''; } catch {}
+    return preferred ? [preferred] : BLUETOOTH_NAMES;
+  }
 
   async function openSerial(onData, onClosed) {
     if (!('serial' in navigator)) throw new Error('This browser cannot use USB serial. Use Chrome or Edge.');
@@ -61,7 +69,7 @@
   async function openBluetooth(onData, onClosed) {
     if (!('bluetooth' in navigator)) throw new Error('This browser cannot use Bluetooth. Use Chrome or Edge.');
     const device = await navigator.bluetooth.requestDevice({
-      filters: [{ namePrefix: NAME_PREFIX }],
+      filters: bluetoothNames().map(name => ({ namePrefix: name })),
       optionalServices: [STUDIO_SERVICE]
     });
     let closed = false;

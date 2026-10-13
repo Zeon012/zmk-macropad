@@ -3,7 +3,7 @@ Portable Windows app for configuring ZMK devices built from this project. No ins
 ## New in 1.0.2
 
 - **Device selector.** Choose Macropad, Keyboard (KB60) or Any device next to **Connect USB**. The app learns each device the first time it connects to it and opens the chosen one directly from then on. If it opens the wrong one before it has learned them, it says so; click **Connect USB** again for the next device.
-- Macros and the key tester now also work on the keyboard when its firmware includes them.
+- Macros, the key tester, battery level and Bluetooth state now also work on the keyboard when its firmware includes them, and **Connect Bluetooth** can find the keyboard as well as the macropad.
 
 ## New in 1.0.1
 
@@ -25,7 +25,7 @@ Portable Windows app for configuring ZMK devices built from this project. No ins
 ## Connecting
 
 - **USB:** plug the device in and click **Connect USB**.
-- **Bluetooth (macropad):** pair it in Windows, unlock it, then click **Connect Bluetooth** within a few seconds. Use USB if it fails.
+- **Bluetooth:** pair the device in Windows, unlock it, then click **Connect Bluetooth** within a few seconds. Use USB if it fails.
 
 To unlock for editing: on the macropad, hold Game Mode and press Print Screen; on the KB60, hold Fn and press `\`.
 

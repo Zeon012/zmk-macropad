@@ -897,8 +897,9 @@ async function connect(open) {
     await closeConnection(absent ? 'No pad selected' : 'Connection failed');
     if (!absent) showNotice(describeError(error), true);
     else if (open === Transports.openBluetooth) {
-      showNotice('The device did not show up over Bluetooth. It only announces itself while unlocked: hold Game Mode ' +
-                 'and press Print Screen, then try again. It also has to be paired with Windows.', true);
+      const hint = UNLOCK_HINTS[preferredDevice()] || 'press its Studio unlock key';
+      showNotice('The device did not show up over Bluetooth. It only announces itself while unlocked: ' +
+                 `${hint.charAt(0).toLowerCase()}${hint.slice(1)}, then try again. It also has to be paired with Windows.`, true);
     }
   }
 }

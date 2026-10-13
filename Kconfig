@@ -48,3 +48,12 @@ config MACROPAD_STATUS_LED_BRIGHTNESS
     depends on MACROPAD_STATUS_LED
     range 1 100
     default 15
+
+config MACROPAD_BT_LED
+    bool "Show Bluetooth state on a single LED"
+    depends on ZMK_BLE && !MACROPAD_STATUS_LED
+    help
+      For boards with no pins free for the RGB status LED. Blinks the LED
+      named by bt-led-gpios in the zephyr,user node: fast while the selected
+      profile is waiting to be paired, a short flash every two seconds while a
+      paired host is not connected.

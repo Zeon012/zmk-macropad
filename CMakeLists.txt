@@ -9,3 +9,7 @@ endif()
 if(CONFIG_MACROPAD_STATUS_LED)
     target_sources(app PRIVATE src/macropad_status_led.c)
 endif()
+
+if(CONFIG_MACROPAD_BT_LED)
+    target_sources(app PRIVATE src/macropad_bt_led.c)
+endif()

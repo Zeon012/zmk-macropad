@@ -78,7 +78,7 @@ function configureSerialPermissions() {
 // Electron has no Bluetooth chooser of its own: pick the pad as soon as the scan
 // sees it, and cancel if it has not turned up after a while.
 const BLUETOOTH_SCAN_MS = 20000;
-const BLUETOOTH_NAME_PREFIX = 'Macropad';
+const BLUETOOTH_NAMES = ['Macropad', 'KB60'];
 
 function configureBluetoothChooser(window) {
   let pendingCallback;
@@ -89,12 +89,19 @@ function configureBluetoothChooser(window) {
     pendingCallback = undefined;
     if (callback) callback(deviceId);
   };
-  window.webContents.on('select-bluetooth-device', (event, devices, callback) => {
+  window.webContents.on('select-bluetooth-device', async (event, devices, callback) => {
     event.preventDefault();
     if (!pendingCallback) scanTimer = setTimeout(() => finish(''), BLUETOOTH_SCAN_MS);
     pendingCallback = callback;
-    const pad = devices.find(({ deviceName }) => (deviceName || '').startsWith(BLUETOOTH_NAME_PREFIX));
-    if (pad) finish(pad.deviceId);
+    // The page's selector narrows the search to one device name.
+    let preferred = '';
+    try {
+      preferred = await window.webContents.executeJavaScript(
+        `(() => { try { return JSON.parse(localStorage.getItem('preferredDevice')) || ''; } catch { return ''; } })()`);
+    } catch {}
+    const names = preferred ? [preferred] : BLUETOOTH_NAMES;
+    const found = devices.find(({ deviceName }) => names.some(name => (deviceName || '').startsWith(name)));
+    if (found) finish(found.deviceId);
   });
 }
 
