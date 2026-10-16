@@ -77,7 +77,7 @@ function configureSerialPermissions() {
 
 // Electron has no Bluetooth chooser of its own: pick the pad as soon as the scan
 // sees it, and cancel if it has not turned up after a while.
-const BLUETOOTH_SCAN_MS = 20000;
+const BLUETOOTH_SCAN_MS = 10000;
 const BLUETOOTH_NAMES = ['Macropad', 'KB60'];
 
 function configureBluetoothChooser(window) {

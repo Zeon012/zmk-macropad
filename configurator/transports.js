@@ -64,6 +64,16 @@
     };
   }
 
+  // Windows can leave a GATT connect waiting forever when the device is paired
+  // but asleep or out of range, so the connection gives up after this long.
+  const BLUETOOTH_CONNECT_MS = 10000;
+
+  function withTimeout(promise, ms, message) {
+    let timer;
+    const expired = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms); });
+    return Promise.race([promise, expired]).finally(() => clearTimeout(timer));
+  }
+
   // The pad must already be paired with this computer, and unlocked so that
   // it is advertising and shows up in the chooser.
   async function openBluetooth(onData, onClosed) {
@@ -80,14 +90,17 @@
 
     let characteristic;
     try {
-      const server = await device.gatt.connect();
-      const service = await server.getPrimaryService(STUDIO_SERVICE);
-      characteristic = await service.getCharacteristic(STUDIO_CHARACTERISTIC);
-      characteristic.addEventListener('characteristicvaluechanged', event => {
-        const value = event.target.value;
-        onData(new Uint8Array(value.buffer, value.byteOffset, value.byteLength));
-      });
-      await characteristic.startNotifications();
+      characteristic = await withTimeout((async () => {
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(STUDIO_SERVICE);
+        const found = await service.getCharacteristic(STUDIO_CHARACTERISTIC);
+        found.addEventListener('characteristicvaluechanged', event => {
+          const value = event.target.value;
+          onData(new Uint8Array(value.buffer, value.byteOffset, value.byteLength));
+        });
+        await found.startNotifications();
+        return found;
+      })(), BLUETOOTH_CONNECT_MS, 'no answer within 10 seconds');
     } catch (error) {
       closed = true;
       device.removeEventListener('gattserverdisconnected', onDisconnected);

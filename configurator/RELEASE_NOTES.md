@@ -1,5 +1,11 @@
 Portable Windows app for configuring ZMK devices built from this project. No install: download `Macropad-Configurator-Portable.exe` and run it.
 
+## New in 1.0.3
+
+- **Connect Bluetooth no longer hangs.** If the device is paired but asleep or out of range, the connection now gives up after 10 seconds and says so, instead of waiting forever. The search for the device is also shorter (10 seconds).
+- If the device connects over Bluetooth but does not answer, the app closes the link within a couple of seconds and explains what to try, instead of staying on *Connecting...*.
+- While connecting, the status reads *Looking for the device over Bluetooth...* and the connect buttons are disabled, so a second click cannot start a second attempt.
+
 ## New in 1.0.2
 
 - **Device selector.** Choose Macropad, Keyboard (KB60) or Any device next to **Connect USB**. The app learns each device the first time it connects to it and opens the chosen one directly from then on. If it opens the wrong one before it has learned them, it says so; click **Connect USB** again for the next device.

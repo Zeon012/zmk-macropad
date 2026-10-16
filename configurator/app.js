@@ -45,6 +45,7 @@ const GENERIC_UNIT_PX = 56;
 const GENERIC_KEYS_PER_ROW = 14;
 
 const SUBSYSTEM_QUERY_TIMEOUT_MS = 1500;
+const CLOSE_TIMEOUT_MS = 2000;
 const STATUS_SUBSYSTEM = 'macropad__status';
 const STATUS_POLL_MS = 5000;
 const SET_BINDING_ERRORS = ['', 'That key position is not valid.', 'The device rejected that action.',
@@ -90,6 +91,7 @@ const macroDelete = document.querySelector('#macroDelete');
 const macroSave = document.querySelector('#macroSave');
 
 let transport;                 // the open USB or Bluetooth link, see transports.js
+let connecting = false;        // a connect attempt is in progress
 let controls = padControls;    // the keys being drawn, in keymap order
 let connectedName = PAD_NAME;
 const isPad = () => connectedName === PAD_NAME;
@@ -840,7 +842,8 @@ async function closeConnection(message = 'Disconnected') {
   batteryStatus.hidden = true;
   bluetoothStatus.hidden = true;
   if (macroDialog.open) macroDialog.close();
-  await activeTransport?.close();
+  // Closing a half-open Bluetooth link can wait forever on Windows; don't let it.
+  await Promise.race([activeTransport?.close(), new Promise(resolve => setTimeout(resolve, CLOSE_TIMEOUT_MS))]);
   statusDot.classList.remove('connected');
   statusText.textContent = message;
   connectButton.textContent = 'Connect USB';
@@ -856,6 +859,10 @@ async function connect(open) {
     await closeConnection();
     return;
   }
+  if (connecting) return;
+  connecting = true;
+  connectButton.disabled = bluetoothButton.disabled = true;
+  statusText.textContent = open === Transports.openBluetooth ? 'Looking for the device over Bluetooth...' : 'Connecting...';
   try {
     let activeClient;
     transport = await open(bytes => activeClient?.receive(bytes),
@@ -894,13 +901,22 @@ async function connect(open) {
     await setLocked(lockState !== LOCK_STATE.UNLOCKED);
   } catch (error) {
     const absent = error.name === 'NotFoundError';
+    const noAnswer = error.message === 'Timed out waiting for core.get_device_info';
     await closeConnection(absent ? 'No pad selected' : 'Connection failed');
-    if (!absent) showNotice(describeError(error), true);
+    if (noAnswer && open === Transports.openBluetooth) {
+      const hint = UNLOCK_HINTS[preferredDevice()] || 'press its Studio unlock key';
+      showNotice('The device connected over Bluetooth but did not answer. Unlock it ' +
+                 `(${hint.charAt(0).toLowerCase()}${hint.slice(1)}) and try again, or plug it in and use Connect USB.`, true);
+    }
+    else if (!absent) showNotice(describeError(error), true);
     else if (open === Transports.openBluetooth) {
       const hint = UNLOCK_HINTS[preferredDevice()] || 'press its Studio unlock key';
       showNotice('The device did not show up over Bluetooth. It only announces itself while unlocked: ' +
                  `${hint.charAt(0).toLowerCase()}${hint.slice(1)}, then try again. It also has to be paired with Windows.`, true);
     }
+  } finally {
+    connecting = false;
+    connectButton.disabled = bluetoothButton.disabled = false;
   }
 }
 
