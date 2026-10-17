@@ -18,13 +18,13 @@
 
 #include <string.h>
 
+#include <zephyr/devicetree.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 #include <raw_hid/events.h>
 #include <zmk/event_manager.h>
 #include <zmk/keymap.h>
-#include <zmk/matrix.h>
 #include <zmk/matrix_transform.h>
 #include <zmk/physical_layouts.h>
 
@@ -44,6 +44,11 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define REPORT_SIZE 32
 #define MAX_DATA (REPORT_SIZE - 4)
 #define KEYMAP_SAVE_DELAY_MS 1000
+
+/* VIA's matrix: the rows and columns of the chosen physical layout's matrix transform. */
+#define VIA_TRANSFORM DT_PHANDLE(DT_CHOSEN(zmk_physical_layout), transform)
+#define VIA_ROWS DT_PROP(VIA_TRANSFORM, rows)
+#define VIA_COLS DT_PROP(VIA_TRANSFORM, columns)
 
 enum via_command {
     id_get_protocol_version = 0x01,
@@ -97,7 +102,7 @@ static int position_at(uint8_t row, uint8_t col) {
     struct zmk_physical_layout const *const *layouts;
     size_t count = zmk_physical_layouts_get_list(&layouts);
     int selected = zmk_physical_layouts_get_selected();
-    if (selected < 0 || selected >= count || row >= ZMK_MATRIX_ROWS || col >= ZMK_MATRIX_COLS) {
+    if (selected < 0 || selected >= count || row >= VIA_ROWS || col >= VIA_COLS) {
         return -1;
     }
     int32_t position =
@@ -141,17 +146,17 @@ static void set_keycode(uint8_t layer, uint8_t row, uint8_t col, uint16_t keycod
 static void get_keymap_bytes(uint16_t offset, uint8_t size, uint8_t *out) {
     for (uint8_t i = 0; i < size; i++) {
         uint16_t key = (offset + i) / 2;
-        uint16_t per_layer = ZMK_MATRIX_ROWS * ZMK_MATRIX_COLS;
+        uint16_t per_layer = VIA_ROWS * VIA_COLS;
         uint8_t layer = key / per_layer, spot = key % per_layer;
         uint16_t keycode = layer < ZMK_KEYMAP_LAYERS_LEN
-                               ? get_keycode(layer, spot / ZMK_MATRIX_COLS, spot % ZMK_MATRIX_COLS)
+                               ? get_keycode(layer, spot / VIA_COLS, spot % VIA_COLS)
                                : VIA_KC_NO;
         out[i] = ((offset + i) % 2 == 0) ? keycode >> 8 : keycode & 0xFF;
     }
 }
 
 static void set_keymap_bytes(uint16_t offset, uint8_t size, const uint8_t *data) {
-    uint16_t per_layer = ZMK_MATRIX_ROWS * ZMK_MATRIX_COLS;
+    uint16_t per_layer = VIA_ROWS * VIA_COLS;
     /* VIA writes whole keycodes; a half one at either end is completed from the current value. */
     for (uint16_t key = offset / 2; key * 2 < offset + size; key++) {
         uint8_t bytes[2];
@@ -164,7 +169,7 @@ static void set_keymap_bytes(uint16_t offset, uint8_t size, const uint8_t *data)
         }
         uint8_t layer = key / per_layer, spot = key % per_layer;
         if (layer < ZMK_KEYMAP_LAYERS_LEN) {
-            set_keycode(layer, spot / ZMK_MATRIX_COLS, spot % ZMK_MATRIX_COLS,
+            set_keycode(layer, spot / VIA_COLS, spot % VIA_COLS,
                         (bytes[0] << 8) | bytes[1]);
         }
     }
