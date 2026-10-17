@@ -57,3 +57,38 @@ config MACROPAD_BT_LED
       named by bt-led-gpios in the zephyr,user node: fast while the selected
       profile is waiting to be paired, a short flash every two seconds while a
       paired host is not connected.
+
+config MACROPAD_VIA
+    bool "VIA compatibility over raw HID"
+    depends on RAW_HID && ZMK_KEYMAP_SETTINGS_STORAGE
+    help
+      Answers the VIA app's raw HID protocol, so usevia.app can read and remap
+      keys and the knob and edit VIA macros. Needs the zmk-raw-hid module and
+      its raw_hid_adapter shield. See via/README.md.
+
+if MACROPAD_VIA
+
+config MACROPAD_VIA_REQUIRE_UNLOCK
+    bool "Only accept VIA changes while ZMK Studio is unlocked"
+    depends on ZMK_STUDIO
+    default y
+    help
+      VIA has no lock of its own, so without this any program on the
+      computer could remap the pad. Reading the keymap is always allowed.
+
+config MACROPAD_VIA_MACRO_COUNT
+    int "Number of VIA macros"
+    range 1 128
+    default 16
+
+config MACROPAD_VIA_MACRO_BUFFER_SIZE
+    int "Bytes for all VIA macros together"
+    range 64 2048
+    default 512
+
+config MACROPAD_VIA_MACRO_TAP_MS
+    int "Milliseconds between key events when playing a VIA macro"
+    range 1 100
+    default 10
+
+endif

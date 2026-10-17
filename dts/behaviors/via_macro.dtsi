@@ -1,0 +1,13 @@
+/*
+ * SPDX-License-Identifier: MIT
+ */
+
+/ {
+    behaviors {
+        via_macro: via_macro {
+            compatible = "zmk,behavior-via-macro";
+            #binding-cells = <1>;
+            display-name = "VIA Macro";
+        };
+    };
+};

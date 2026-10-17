@@ -1,6 +1,7 @@
 #include <behaviors.dtsi>
 #include <behaviors/runtime_macro.dtsi>
 #include <behaviors/runtime-sensor-rotate.dtsi>
+#include <behaviors/via_macro.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/outputs.h>
