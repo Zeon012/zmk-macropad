@@ -36,7 +36,7 @@ The WS2812 strip wants 5 V. Power it from USB 5 V, not the 3.3 V pin, and consid
 The original firmware shipped every control as "None", so these are placeholders:
 
 - Base: F13-F22 for the ten task and action keys, Print Screen and Pause/Break on the two bottom keys, Game Mode = Fn layer (hold). Encoder = volume.
-- Fn (hold Game Mode): BT select 0-2, BT clear, USB/BT toggle, RGB toggle/effect/brightness, bootloader, Studio unlock (Print Screen key). Encoder = next/previous track.
+- Fn (hold Game Mode): BT select 0-2, BT clear, USB/BT toggle, RGB toggle/effect/brightness, bootloader, Studio unlock (Print Screen key), Bluetooth Off (Pause key: switches to spare profile 2 and disconnects profile 0 so the PC stays disconnected; Fn + BT select 0 reconnects). Switching profiles disconnects the other hosts (`CONFIG_MACROPAD_BLE_EXCLUSIVE`), so only the selected one shows the pad as connected; switching back takes a second or two to reconnect. Encoder = next/previous track.
 
 ## Build and flash
 

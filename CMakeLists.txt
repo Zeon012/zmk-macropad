@@ -14,6 +14,10 @@ if(CONFIG_MACROPAD_BT_LED)
     target_sources(app PRIVATE src/macropad_bt_led.c)
 endif()
 
+if(CONFIG_MACROPAD_BLE_EXCLUSIVE)
+    target_sources(app PRIVATE src/macropad_ble_exclusive.c)
+endif()
+
 if(CONFIG_MACROPAD_VIA)
     target_sources(app PRIVATE
         src/via/via_protocol.c

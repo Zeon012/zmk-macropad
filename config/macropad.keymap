@@ -32,6 +32,18 @@
         };
     };
 
+    macros {
+        // Leaves the PC disconnected: the active profile always reconnects, so move to
+        // spare profile 2 first, then drop profile 0. Fn + BT_SEL 0 reconnects.
+        bt_off: bt_off {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            display-name = "Bluetooth Off";
+            wait-ms = <30>;
+            bindings = <&bt BT_SEL 2>, <&bt BT_DISC 0>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
@@ -52,7 +64,7 @@
                             &bt BT_SEL 0  &bt BT_SEL 1
                 &bt BT_SEL 2  &bootloader   &bt BT_CLR   &out OUT_TOG
                 &rgb_ug RGB_TOG  &rgb_ug RGB_EFF  &rgb_ug RGB_BRI  &rgb_ug RGB_BRD
-                              &studio_unlock  &none  &trans
+                              &studio_unlock  &bt_off  &trans
             >;
             sensor-bindings = <&rsr_track>;
         };

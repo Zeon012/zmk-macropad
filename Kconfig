@@ -58,6 +58,14 @@ config MACROPAD_BT_LED
       profile is waiting to be paired, a short flash every two seconds while a
       paired host is not connected.
 
+config MACROPAD_BLE_EXCLUSIVE
+    bool "Disconnect the other Bluetooth profiles when switching profiles"
+    depends on ZMK_BLE
+    help
+      ZMK keeps hosts on inactive profiles connected, so a computer you
+      switched away from still shows the pad as connected. With this, only
+      the selected profile stays connected; switching back reconnects it.
+
 config MACROPAD_VIA
     bool "VIA compatibility over USB raw HID"
     depends on ZMK_USB && ZMK_KEYMAP_SETTINGS_STORAGE
