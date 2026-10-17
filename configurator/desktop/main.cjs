@@ -7,6 +7,9 @@ const editorRoot = path.resolve(__dirname, '..');
 let server;
 let serialConfigured = false;
 
+// USB ids of the devices the configurator knows (transports.js has the same list).
+const USB_IDS = [[0x1d50, 0x615e], [0x1209, 0x0001]];
+
 const contentTypes = {
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
@@ -47,11 +50,12 @@ function configureSerialPermissions() {
   let lastPortId;
   defaultSession.on('select-serial-port', async (event, portList, webContents, callback) => {
     event.preventDefault();
-    // Every ZMK device shares this USB id, so they are told apart by serial
-    // number. The page stores which device the user picked and the serial
-    // numbers it has learned; an empty id cancels when no device is present.
+    // ZMK devices mostly share one USB id (the KB60 has its own), so they are
+    // told apart by serial number. The page stores which device the user
+    // picked and the serial numbers it has learned; an empty id cancels when
+    // no device is present.
     const candidates = portList.filter(({ vendorId, productId }) =>
-      Number(vendorId) === 0x1d50 && Number(productId) === 0x615e);
+      USB_IDS.some(([vid, pid]) => Number(vendorId) === vid && Number(productId) === pid));
     let wantedSerial = '';
     try {
       wantedSerial = await webContents.executeJavaScript(`(() => {

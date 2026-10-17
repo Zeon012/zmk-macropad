@@ -5,8 +5,12 @@
 (function (root) {
   'use strict';
 
-  // ZMK's USB ids, and the baud rate ZMK Studio uses for the serial transport.
-  const USB_FILTER = { usbVendorId: 0x1d50, usbProductId: 0x615e };
+  // USB ids of the devices this app knows: ZMK's shared id (the macropad) and
+  // the KB60's own (pid.codes test id). Also the baud rate ZMK Studio uses.
+  const USB_FILTERS = [
+    { usbVendorId: 0x1d50, usbProductId: 0x615e },
+    { usbVendorId: 0x1209, usbProductId: 0x0001 }
+  ];
   const BAUD_RATE = 12500;
 
   // ZMK Studio's GATT service and its single RPC characteristic.
@@ -31,7 +35,7 @@
 
   async function openSerial(onData, onClosed) {
     if (!('serial' in navigator)) throw new Error('This browser cannot use USB serial. Use Chrome or Edge.');
-    const port = await navigator.serial.requestPort({ filters: [USB_FILTER] });
+    const port = await navigator.serial.requestPort({ filters: USB_FILTERS });
     await port.open({ baudRate: BAUD_RATE });
     const writer = port.writable.getWriter();
     const reader = port.readable.getReader();

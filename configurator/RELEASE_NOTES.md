@@ -1,5 +1,9 @@
 Portable Windows app for configuring ZMK devices built from this project. No install: download `Macropad-Configurator-Portable.exe` and run it.
 
+## New in 1.0.5
+
+- **Connect USB** also finds the KB60 keyboard, which now has its own USB ID (1209:0001) instead of sharing ZMK's with the macropad.
+
 ## New in 1.0.4
 
 - **Bluetooth off** on the DEVICE tab, for firmware that has it: switches to spare Bluetooth profile 3 and disconnects the computer, so it stays disconnected. Bluetooth 1 reconnects.
