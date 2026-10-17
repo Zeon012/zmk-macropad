@@ -22,3 +22,7 @@ if(CONFIG_MACROPAD_VIA)
         src/via/behavior_via_macro.c
     )
 endif()
+
+if(CONFIG_MACROPAD_BOOT_KEY)
+    target_sources(app PRIVATE src/macropad_boot_key.c)
+endif()

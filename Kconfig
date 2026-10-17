@@ -92,3 +92,24 @@ config MACROPAD_VIA_MACRO_TAP_MS
     default 10
 
 endif
+
+config MACROPAD_BOOT_KEY
+    bool "Hold a key while powering up to enter the bootloader"
+    select GPIO
+    help
+      Restarts into the UF2 bootloader when the key at
+      MACROPAD_BOOT_KEY_ROW/COL (kscan row and column indexes) is held while
+      the board starts, so new firmware can be flashed without reaching the
+      reset pins. Assumes col2row diodes.
+
+if MACROPAD_BOOT_KEY
+
+config MACROPAD_BOOT_KEY_ROW
+    int "Row index of the boot key"
+    default 0
+
+config MACROPAD_BOOT_KEY_COL
+    int "Column index of the boot key"
+    default 1
+
+endif
