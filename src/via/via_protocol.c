@@ -10,8 +10,8 @@
  * Reading is always allowed. With MACROPAD_VIA_REQUIRE_UNLOCK, changes only
  * go through while ZMK Studio is unlocked, the same rule the configurator has.
  *
- * Reports arrive in the USB or Bluetooth stack's context, so they are copied
- * and handled on the system work queue.
+ * Reports arrive in the USB stack's context (via_usb_hid.c), so they are
+ * copied and handled on the system work queue.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -22,8 +22,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#include <raw_hid/events.h>
-#include <zmk/event_manager.h>
 #include <zmk/keymap.h>
 #include <zmk/matrix_transform.h>
 #include <zmk/physical_layouts.h>
@@ -41,7 +39,7 @@
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define VIA_PROTOCOL_VERSION 0x000C
-#define REPORT_SIZE 32
+#define REPORT_SIZE VIA_REPORT_SIZE
 #define MAX_DATA (REPORT_SIZE - 4)
 #define KEYMAP_SAVE_DELAY_MS 1000
 
@@ -332,27 +330,18 @@ static void report_work_handler(struct k_work *work) {
     uint8_t report[REPORT_SIZE];
     while (k_msgq_get(&report_queue, report, K_NO_WAIT) == 0) {
         handle_report(report);
-        raise_raw_hid_sent_event(
-            (struct raw_hid_sent_event){.data = report, .length = REPORT_SIZE});
+        via_send_report(report);
     }
 }
 
 static K_WORK_DEFINE(report_work, report_work_handler);
 
-static int raw_hid_received_listener(const zmk_event_t *eh) {
-    struct raw_hid_received_event *event = as_raw_hid_received_event(eh);
-    if (!event) {
-        return ZMK_EV_EVENT_BUBBLE;
-    }
+void via_receive_report(const uint8_t *data, size_t length) {
     uint8_t report[REPORT_SIZE] = {0};
-    memcpy(report, event->data, MIN(event->length, REPORT_SIZE));
+    memcpy(report, data, MIN(length, REPORT_SIZE));
     if (k_msgq_put(&report_queue, report, K_NO_WAIT) == 0) {
         k_work_submit(&report_work);
     } else {
         LOG_WRN("VIA report dropped: the queue is full");
     }
-    return ZMK_EV_EVENT_BUBBLE;
 }
-
-ZMK_LISTENER(macropad_via, raw_hid_received_listener);
-ZMK_SUBSCRIPTION(macropad_via, raw_hid_received_event);

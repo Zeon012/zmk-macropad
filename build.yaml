@@ -1,6 +1,6 @@
 include:
   - board: nice_nano//zmk
-    shield: macropad raw_hid_adapter
+    shield: macropad
     snippet: studio-rpc-usb-uart
   - board: nice_nano//zmk
     shield: settings_reset

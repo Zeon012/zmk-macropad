@@ -17,6 +17,7 @@ endif()
 if(CONFIG_MACROPAD_VIA)
     target_sources(app PRIVATE
         src/via/via_protocol.c
+        src/via/via_usb_hid.c
         src/via/via_keycodes.c
         src/via/via_macros.c
         src/via/behavior_via_macro.c

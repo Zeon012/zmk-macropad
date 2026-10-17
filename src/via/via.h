@@ -9,9 +9,19 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include <zmk/behavior.h>
+
+/* Every VIA request and reply is one report of this many bytes. */
+#define VIA_REPORT_SIZE 32
+
+/* Hands a request from the host to the protocol handler; safe from USB callbacks. */
+void via_receive_report(const uint8_t *data, size_t length);
+
+/* Sends a reply to the host (via_usb_hid.c). */
+void via_send_report(const uint8_t *report);
 
 /* QMK keycodes VIA uses that need names here. */
 #define VIA_KC_NO 0x0000
