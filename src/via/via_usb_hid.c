@@ -4,8 +4,8 @@
  * VIA finds a keyboard. VIA writes requests as output reports (SET_REPORT on
  * the control endpoint) and reads replies from the interrupt IN endpoint.
  *
- * USB only: a Bluetooth copy of the interface made Windows show the pad
- * twice when it was connected both ways, and VIA then read replies twice.
+ * via_ble_hid.c is the same interface over Bluetooth. Each reply goes back
+ * only over the connection its request came in on.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -25,7 +25,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define HID_REPORT_TYPE_MASK 0xff00
 #define HID_REPORT_TYPE_OUTPUT 0x200
 
-static const uint8_t raw_hid_report_desc[] = {
+const uint8_t via_raw_hid_report_desc[] = {
     0x06, 0x60, 0xFF, /* Usage Page (Vendor 0xFF60) */
     0x09, 0x61,       /* Usage (0x61) */
     0xA1, 0x01,       /* Collection (Application) */
@@ -44,6 +44,8 @@ static const uint8_t raw_hid_report_desc[] = {
     0xC0,             /* End Collection */
 };
 
+const size_t via_raw_hid_report_desc_len = sizeof(via_raw_hid_report_desc);
+
 static const struct device *hid_dev;
 
 /* Held while a reply is on its way to the host. */
@@ -61,7 +63,7 @@ static int set_report_cb(const struct device *dev, struct usb_setup_packet *setu
     if ((setup->wValue & HID_REPORT_TYPE_MASK) != HID_REPORT_TYPE_OUTPUT) {
         return -ENOTSUP;
     }
-    via_receive_report(*data, *len);
+    via_receive_report(*data, *len, VIA_TRANSPORT_USB, NULL);
     return 0;
 }
 
@@ -71,7 +73,7 @@ static const struct hid_ops ops = {
     .set_report = set_report_cb,
 };
 
-void via_send_report(const uint8_t *report) {
+void via_usb_send_report(const uint8_t *report) {
     /*
      * Static, not on the stack: the USB controller reads it after this
      * returns. The semaphore keeps the next reply from overwriting it early.
@@ -96,7 +98,7 @@ static int via_usb_hid_init(void) {
         LOG_ERR("No second USB HID device for VIA; set CONFIG_USB_HID_DEVICE_COUNT=2");
         return -ENODEV;
     }
-    usb_hid_register_device(hid_dev, raw_hid_report_desc, sizeof(raw_hid_report_desc), &ops);
+    usb_hid_register_device(hid_dev, via_raw_hid_report_desc, via_raw_hid_report_desc_len, &ops);
     return usb_hid_init(hid_dev);
 }
 

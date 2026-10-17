@@ -17,11 +17,32 @@
 /* Every VIA request and reply is one report of this many bytes. */
 #define VIA_REPORT_SIZE 32
 
-/* Hands a request from the host to the protocol handler; safe from USB callbacks. */
-void via_receive_report(const uint8_t *data, size_t length);
+/* Where a request came from; its reply goes back the same way. */
+enum via_transport {
+    VIA_TRANSPORT_USB,
+    VIA_TRANSPORT_BLE,
+};
 
-/* Sends a reply to the host (via_usb_hid.c). */
-void via_send_report(const uint8_t *report);
+/*
+ * Hands a request from the host to the protocol handler; safe from USB and
+ * Bluetooth callbacks. For Bluetooth, `conn` is a reference to the
+ * connection (struct bt_conn *) that this call takes over.
+ */
+void via_receive_report(const uint8_t *data, size_t length, enum via_transport transport,
+                        void *conn);
+
+/* QMK's raw HID report descriptor, used on USB and Bluetooth alike (via_usb_hid.c). */
+extern const uint8_t via_raw_hid_report_desc[];
+extern const size_t via_raw_hid_report_desc_len;
+
+/* Sends a reply over USB (via_usb_hid.c). */
+void via_usb_send_report(const uint8_t *report);
+
+/* Sends a reply over Bluetooth to `conn` and releases it (via_ble_hid.c). */
+void via_ble_send_report(void *conn, const uint8_t *report);
+
+/* Releases a connection reference without replying (via_ble_hid.c). */
+void via_ble_release(void *conn);
 
 /* QMK keycodes VIA uses that need names here. */
 #define VIA_KC_NO 0x0000

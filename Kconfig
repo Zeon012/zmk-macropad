@@ -62,11 +62,21 @@ config MACROPAD_VIA
     bool "VIA compatibility over USB raw HID"
     depends on ZMK_USB && ZMK_KEYMAP_SETTINGS_STORAGE
     help
-      Adds a raw HID interface on USB and answers the VIA app's protocol on
-      it, so usevia.app can read and remap keys and the knob and edit VIA
-      macros. Needs CONFIG_USB_HID_DEVICE_COUNT=2. See via/README.md.
+      Adds a raw HID interface on USB (and Bluetooth, MACROPAD_VIA_BLE) and
+      answers the VIA app's protocol on it, so usevia.app can read and remap
+      keys and the knob and edit VIA macros. Needs
+      CONFIG_USB_HID_DEVICE_COUNT=2. See via/README.md.
 
 if MACROPAD_VIA
+
+config MACROPAD_VIA_BLE
+    bool "VIA over Bluetooth too"
+    depends on ZMK_BLE
+    default y
+    help
+      Adds a second Bluetooth HID service with the same raw HID interface,
+      so VIA can also reach the pad over Bluetooth. A computer that paired
+      before this was added may need to remove and re-pair the pad.
 
 config MACROPAD_VIA_REQUIRE_UNLOCK
     bool "Only accept VIA changes while ZMK Studio is unlocked"

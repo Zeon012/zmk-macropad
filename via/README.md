@@ -1,6 +1,6 @@
 # VIA on the macropad (experimental)
 
-The `via-compat` branch lets [VIA](https://usevia.app) edit the pad, next to the configurator. The firmware answers VIA's raw HID protocol (`src/via/`) on a second USB HID interface, so VIA works over the USB cable, whether or not the pad is also connected by Bluetooth.
+The `via-compat` branch lets [VIA](https://usevia.app) edit the pad, next to the configurator. The firmware answers VIA's raw HID protocol (`src/via/`) on a second HID interface, over the USB cable and over Bluetooth. Each reply goes back the way its request came, so having both connected at once is fine.
 
 ## Loading the pad in VIA
 
@@ -9,7 +9,9 @@ VIA only knows keyboards from its own list, so it needs this folder's definition
 1. Open https://usevia.app in Chrome or Edge.
 2. **Settings**: turn on **Show Design tab**.
 3. **Design**: load `macropad.json` from this folder.
-4. **Configure**: plug the pad in by USB and authorize it.
+4. **Configure**: authorize the pad. Over USB it is listed once; over Bluetooth the browser lists the pad's Bluetooth connection.
+
+**Bluetooth:** the VIA interface is a new Bluetooth service, and Windows remembers a paired device's old service list. If the pad doesn't show up in VIA over Bluetooth, remove it in Windows Bluetooth settings and pair it again. If Windows can't pair, the pad still remembers the old pairing: on the pad, press BT Clear (Fn + key 5) on that Bluetooth profile, then pair.
 
 ## Editing
 

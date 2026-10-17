@@ -10,8 +10,10 @@
  * Reading is always allowed. With MACROPAD_VIA_REQUIRE_UNLOCK, changes only
  * go through while ZMK Studio is unlocked, the same rule the configurator has.
  *
- * Reports arrive in the USB stack's context (via_usb_hid.c), so they are
- * copied and handled on the system work queue.
+ * Reports arrive in the USB or Bluetooth stack's context (via_usb_hid.c,
+ * via_ble_hid.c), so they are copied and handled on the system work queue,
+ * and each reply goes back over the connection its request came in on. (A
+ * reply sent both ways made VIA read every answer twice.)
  *
  * SPDX-License-Identifier: MIT
  */
@@ -78,7 +80,13 @@ enum via_keyboard_value {
     id_firmware_version = 0x04,
 };
 
-K_MSGQ_DEFINE(report_queue, REPORT_SIZE, 4, 1);
+struct queued_report {
+    uint8_t report[REPORT_SIZE];
+    enum via_transport transport;
+    void *conn;
+};
+
+K_MSGQ_DEFINE(report_queue, sizeof(struct queued_report), 4, 4);
 
 static bool may_change(void) {
 #if IS_ENABLED(CONFIG_MACROPAD_VIA_REQUIRE_UNLOCK)
@@ -327,21 +335,33 @@ static void handle_report(uint8_t *report) {
 }
 
 static void report_work_handler(struct k_work *work) {
-    uint8_t report[REPORT_SIZE];
-    while (k_msgq_get(&report_queue, report, K_NO_WAIT) == 0) {
-        handle_report(report);
-        via_send_report(report);
+    struct queued_report item;
+    while (k_msgq_get(&report_queue, &item, K_NO_WAIT) == 0) {
+        handle_report(item.report);
+#if IS_ENABLED(CONFIG_MACROPAD_VIA_BLE)
+        if (item.transport == VIA_TRANSPORT_BLE) {
+            via_ble_send_report(item.conn, item.report);
+            continue;
+        }
+#endif
+        via_usb_send_report(item.report);
     }
 }
 
 static K_WORK_DEFINE(report_work, report_work_handler);
 
-void via_receive_report(const uint8_t *data, size_t length) {
-    uint8_t report[REPORT_SIZE] = {0};
-    memcpy(report, data, MIN(length, REPORT_SIZE));
-    if (k_msgq_put(&report_queue, report, K_NO_WAIT) == 0) {
+void via_receive_report(const uint8_t *data, size_t length, enum via_transport transport,
+                        void *conn) {
+    struct queued_report item = {.transport = transport, .conn = conn};
+    memcpy(item.report, data, MIN(length, REPORT_SIZE));
+    if (k_msgq_put(&report_queue, &item, K_NO_WAIT) == 0) {
         k_work_submit(&report_work);
-    } else {
-        LOG_WRN("VIA report dropped: the queue is full");
+        return;
     }
+    LOG_WRN("VIA report dropped: the queue is full");
+#if IS_ENABLED(CONFIG_MACROPAD_VIA_BLE)
+    if (transport == VIA_TRANSPORT_BLE) {
+        via_ble_release(conn);
+    }
+#endif
 }
