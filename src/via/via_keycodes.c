@@ -2,7 +2,7 @@
  * Translation between QMK's 16-bit keycodes (what VIA reads and writes) and
  * ZMK behavior bindings. Covered: plain keys, keys with modifiers, media and
  * system keys, layer keys (momentary, toggle, to), VIA macros, bootloader and
- * reset, and the macropad's Bluetooth/output/unlock keys as VIA custom
+ * reset, and the macropad's Bluetooth/output/unlock/off keys as VIA custom
  * keycodes. Anything else shows in VIA as "ZMK" and is left alone.
  *
  * SPDX-License-Identifier: MIT
@@ -48,6 +48,7 @@ enum via_custom {
     VIA_CUSTOM_OUTPUT_TOGGLE,
     VIA_CUSTOM_STUDIO_UNLOCK,
     VIA_CUSTOM_ZMK_OTHER,
+    VIA_CUSTOM_BT_OFF,
 };
 
 /* QMK basic keycodes 0xA5-0xBE stand for system and consumer usages. */
@@ -196,6 +197,9 @@ uint16_t via_keycode_from_binding(const struct zmk_behavior_binding *binding) {
     if (named(binding, "studio_unlock")) {
         return QK_KB + VIA_CUSTOM_STUDIO_UNLOCK;
     }
+    if (named(binding, "bt_off")) {
+        return QK_KB + VIA_CUSTOM_BT_OFF;
+    }
     return VIA_KC_ZMK_OTHER;
 }
 
@@ -263,6 +267,9 @@ bool via_keycode_to_binding(uint16_t keycode, struct zmk_behavior_binding *out) 
         return via_make_binding("outputs", OUT_TOG, 0, out);
     case QK_KB + VIA_CUSTOM_STUDIO_UNLOCK:
         return via_make_binding("studio_unlock", 0, 0, out);
+    case QK_KB + VIA_CUSTOM_BT_OFF:
+        /* The keymap's bt_off macro; false on keymaps without it. */
+        return via_make_binding("bt_off", 0, 0, out);
     default:
         return false;
     }

@@ -41,6 +41,11 @@
       "name": "ZMK",
       "title": "A ZMK binding VIA cannot show; choosing it changes nothing",
       "shortName": "ZMK"
+    },
+    {
+      "name": "BT Off",
+      "title": "Bluetooth off: switch to spare profile 2 and drop the PC (Fn + BT 1 reconnects)",
+      "shortName": "BTOff"
     }
   ],
   "menus": [],

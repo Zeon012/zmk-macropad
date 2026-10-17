@@ -82,7 +82,8 @@
             plain('Middle click', 'Mouse Key Press', 4)],
     DEVICE: [plain('Bluetooth 1', 'Bluetooth', 3, 0), plain('Bluetooth 2', 'Bluetooth', 3, 1),
              plain('Bluetooth 3', 'Bluetooth', 3, 2), plain('Bluetooth clear', 'Bluetooth', 0, 0),
-             plain('USB / Bluetooth', 'Output Selection', 0), plain('Studio unlock', 'Studio Unlock'),
+             plain('Bluetooth off', 'Bluetooth Off'), plain('USB / Bluetooth', 'Output Selection', 0),
+             plain('Studio unlock', 'Studio Unlock'),
              plain('Flashing mode', 'Bootloader'), plain('Restart', 'Reset')]
   };
 

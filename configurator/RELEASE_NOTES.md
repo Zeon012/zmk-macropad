@@ -1,5 +1,10 @@
 Portable Windows app for configuring ZMK devices built from this project. No install: download `Macropad-Configurator-Portable.exe` and run it.
 
+## New in 1.0.4
+
+- **Bluetooth off** on the DEVICE tab, for firmware that has it: switches to spare Bluetooth profile 3 and disconnects the computer, so it stays disconnected. Bluetooth 1 reconnects.
+- Over Bluetooth, the app waits up to 5 seconds for the device to list its extras (macros, knob, key tester, battery), so they no longer go missing on a slow link.
+
 ## New in 1.0.3
 
 - **Connect Bluetooth no longer hangs.** If the device is paired but asleep or out of range, the connection now gives up after 10 seconds and says so, instead of waiting forever. The search for the device is also shorter (10 seconds).

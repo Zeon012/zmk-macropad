@@ -22,7 +22,7 @@ VIA only knows keyboards from its own list, so it needs this folder's definition
 
 ## What VIA can and cannot show
 
-VIA uses QMK keycodes. These translate both ways: letters and other keys, keys held with modifiers, media and system keys, the layer keys MO/TG/TO, M0-M15, bootloader and reset, and these extras under **Custom**: BT 1-3, BT Clear, USB/BT and Unlock.
+VIA uses QMK keycodes. These translate both ways: letters and other keys, keys held with modifiers, media and system keys, the layer keys MO/TG/TO, M0-M15, bootloader and reset, and these extras under **Custom**: BT 1-3, BT Clear, USB/BT, Unlock and BT Off.
 
 Anything else (the configurator's macros, mouse scroll, RGB, two-handed modifier combinations) shows as **ZMK**. Leaving a key on ZMK keeps it, and choosing ZMK for a key changes nothing. Set those keys in the configurator instead.
 
