@@ -26,4 +26,4 @@ VIA uses QMK keycodes. These translate both ways: letters and other keys, keys h
 
 Anything else (the configurator's macros, mouse scroll, RGB, two-handed modifier combinations) shows as **ZMK**. Leaving a key on ZMK keeps it, and choosing ZMK for a key changes nothing. Set those keys in the configurator instead.
 
-The key tester in VIA stays blank, as it does on QMK boards; the configurator has one.
+VIA's **Test Matrix** (key tester) lights up keys as you press them while the pad is unlocked. While it is locked every key reads as up, so no other program can read keystrokes through VIA.

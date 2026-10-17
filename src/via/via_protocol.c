@@ -9,6 +9,8 @@
  *
  * Reading is always allowed. With MACROPAD_VIA_REQUIRE_UNLOCK, changes only
  * go through while ZMK Studio is unlocked, the same rule the configurator has.
+ * The live key state for VIA's key tester follows the same rule, since any
+ * program could otherwise read every keystroke from it.
  *
  * Reports arrive in the USB or Bluetooth stack's context (via_usb_hid.c,
  * via_ble_hid.c), so they are copied and handled on the system work queue,
@@ -23,8 +25,12 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/atomic.h>
 
+#include <zmk/event_manager.h>
+#include <zmk/events/position_state_changed.h>
 #include <zmk/keymap.h>
+#include <zmk/matrix.h>
 #include <zmk/matrix_transform.h>
 #include <zmk/physical_layouts.h>
 
@@ -114,6 +120,37 @@ static int position_at(uint8_t row, uint8_t col) {
     int32_t position =
         zmk_matrix_transform_row_column_to_position(layouts[selected]->matrix_transform, row, col);
     return position < 0 ? -1 : position;
+}
+
+/* Key positions held right now, for VIA's key tester. Set from the event thread. */
+static ATOMIC_DEFINE(held_positions, ZMK_KEYMAP_LEN);
+
+static int position_listener(const zmk_event_t *eh) {
+    const struct zmk_position_state_changed *ev = as_zmk_position_state_changed(eh);
+    if (ev && ev->position < ZMK_KEYMAP_LEN) {
+        atomic_set_bit_to(held_positions, ev->position, ev->state);
+    }
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(via_matrix_state, position_listener);
+ZMK_SUBSCRIPTION(via_matrix_state, zmk_position_state_changed);
+
+/*
+ * QMK's switch matrix state: from row `offset` on, as many rows as fit in 28
+ * bytes, each (columns + 7) / 8 bytes, high byte first, column c in bit c.
+ */
+static void get_matrix_state(uint8_t offset, uint8_t *out) {
+    const uint8_t bytes_per_row = (VIA_COLS + 7) / 8;
+    for (uint8_t r = 0; r < MAX_DATA / bytes_per_row && offset + r < VIA_ROWS; r++) {
+        for (uint8_t col = 0; col < VIA_COLS; col++) {
+            int position = position_at(offset + r, col);
+            if (position >= 0 && position < ZMK_KEYMAP_LEN &&
+                atomic_test_bit(held_positions, position)) {
+                out[r * bytes_per_row + bytes_per_row - 1 - col / 8] |= BIT(col % 8);
+            }
+        }
+    }
 }
 
 static uint16_t get_keycode(uint8_t layer, uint8_t row, uint8_t col) {
@@ -237,8 +274,11 @@ static void handle_report(uint8_t *report) {
             put_u32(&data[1], 0);
             break;
         case id_switch_matrix_state:
-            /* VIA's key tester; QMK also leaves this empty unless built insecure. */
+            /* VIA's key tester; like QMK's secure mode, all keys read as up while locked. */
             memset(&data[2], 0, REPORT_SIZE - 3);
+            if (may_change()) {
+                get_matrix_state(data[1], &data[2]);
+            }
             break;
         default:
             *command = id_unhandled;
