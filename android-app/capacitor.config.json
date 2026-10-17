@@ -1,0 +1,8 @@
+{
+  "appId": "io.github.zeon012.macropad",
+  "appName": "Macropad Configurator",
+  "webDir": "www",
+  "android": {
+    "path": "android"
+  }
+}

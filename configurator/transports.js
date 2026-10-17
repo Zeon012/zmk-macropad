@@ -74,9 +74,67 @@
     return Promise.race([promise, expired]).finally(() => clearTimeout(timer));
   }
 
+  // In the Android app the WebView has no Web Bluetooth, so the native
+  // Bluetooth LE plugin (loaded only there) does the same job.
+  function nativeBluetooth() {
+    const native = root.Capacitor && root.Capacitor.isNativePlatform && root.Capacitor.isNativePlatform();
+    return native && root.capacitorCommunityBluetoothLe ? root.capacitorCommunityBluetoothLe.BleClient : null;
+  }
+
+  async function openNativeBluetooth(ble, onData, onClosed) {
+    await ble.initialize();
+    if (!(await ble.isEnabled())) await ble.requestEnable();
+    const names = bluetoothNames();
+    let device;
+    try {
+      device = await ble.requestDevice(names.length === 1
+        ? { namePrefix: names[0], optionalServices: [STUDIO_SERVICE] }
+        : { optionalServices: [STUDIO_SERVICE] });
+    } catch (error) {
+      // Closing the chooser counts as no device, like in the browser.
+      if (!/cancel/i.test(error.message || '')) throw error;
+      const none = new Error(error.message);
+      none.name = 'NotFoundError';
+      throw none;
+    }
+    const id = device.deviceId;
+    let closed = false;
+    try {
+      await ble.connect(id, () => { if (!closed) onClosed('Bluetooth disconnected'); }, { timeout: BLUETOOTH_CONNECT_MS });
+      await ble.startNotifications(id, STUDIO_SERVICE, STUDIO_CHARACTERISTIC,
+        view => onData(new Uint8Array(view.buffer, view.byteOffset, view.byteLength)));
+    } catch (error) {
+      closed = true;
+      try { await ble.disconnect(id); } catch {}
+      throw new Error(`Could not open the device over Bluetooth (${error.message}). Check that it is paired and unlocked.`);
+    }
+
+    let queue = Promise.resolve();
+    return {
+      label: 'Bluetooth',
+      write(bytes) {
+        const run = async () => {
+          for (let offset = 0; offset < bytes.length; offset += BLUETOOTH_CHUNK) {
+            const length = Math.min(BLUETOOTH_CHUNK, bytes.length - offset);
+            await ble.write(id, STUDIO_SERVICE, STUDIO_CHARACTERISTIC, new DataView(bytes.buffer, bytes.byteOffset + offset, length));
+          }
+        };
+        queue = queue.then(run, run);
+        return queue;
+      },
+      async close() {
+        closed = true;
+        try { await ble.stopNotifications(id, STUDIO_SERVICE, STUDIO_CHARACTERISTIC); } catch {}
+        try { await ble.disconnect(id); } catch {}
+      }
+    };
+  }
+
   // The pad must already be paired with this computer, and unlocked so that
   // it is advertising and shows up in the chooser.
   async function openBluetooth(onData, onClosed) {
+    const ble = nativeBluetooth();
+    if (ble) return openNativeBluetooth(ble, onData, onClosed);
     if (!('bluetooth' in navigator)) throw new Error('This browser cannot use Bluetooth. Use Chrome or Edge.');
     const device = await navigator.bluetooth.requestDevice({
       filters: bluetoothNames().map(name => ({ namePrefix: name })),
@@ -130,5 +188,9 @@
     };
   }
 
-  root.MacropadTransports = { openSerial, openBluetooth, PREFERRED_DEVICE_KEY, KNOWN_DEVICES_KEY };
+  root.MacropadTransports = {
+    openSerial, openBluetooth, PREFERRED_DEVICE_KEY, KNOWN_DEVICES_KEY,
+    // True inside the Android app, which connects over Bluetooth only.
+    isNativeApp: Boolean(nativeBluetooth())
+  };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

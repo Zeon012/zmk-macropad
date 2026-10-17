@@ -440,6 +440,8 @@ function render() {
   lockHint.textContent = `${UNLOCK_HINTS[connectedName] || 'Press its Studio unlock key'} to unlock it for editing.`;
   brand.textContent = (client ? connectedName : 'Macro pad').toUpperCase();
   bluetoothButton.hidden = Boolean(transport);
+  // The Android app has no USB: this button only appears as Disconnect.
+  if (Transports.isNativeApp) connectButton.hidden = !transport;
   renderDeviceSelect();
   renderTester();
   renderLayerTabs();
@@ -964,4 +966,9 @@ testerToggle.addEventListener('click', () => setTester(!testerOn));
 macroSave.addEventListener('click', saveMacro);
 macroDelete.addEventListener('click', deleteMacro);
 
+if (Transports.isNativeApp) {
+  document.querySelector('#hostHint').textContent =
+    'Pair the device in Android Bluetooth settings and unlock it before connecting.';
+  deviceSelect.title = 'Which device Connect Bluetooth should look for';
+}
 render();

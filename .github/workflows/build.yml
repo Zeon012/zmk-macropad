@@ -5,10 +5,13 @@ on:
       - "**"
     paths-ignore:
       - "configurator/**"
+      - "android-app/**"
       - ".github/workflows/release-configurator.yml"
+      - ".github/workflows/release-android.yml"
   pull_request:
     paths-ignore:
       - "configurator/**"
+      - "android-app/**"
   workflow_dispatch:
 
 jobs:

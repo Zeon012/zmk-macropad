@@ -385,3 +385,26 @@ body { background: var(--surface); }
 /* ---- Device selector ---- */
 .device-select { width: auto; padding: 8px 10px; color: #d8d0ee; background: var(--surface); border: 1px solid var(--hairline); border-radius: 9px; font: 12px 'DM Mono', monospace; }
 .device-select:disabled { opacity: .5; }
+
+/* ---- Phones (the Android app) ---- */
+@media (max-width: 760px) {
+  .shell { width: 100%; padding: 0 0 env(safe-area-inset-bottom); }
+  .topbar { align-items: stretch; gap: 10px; padding: calc(12px + env(safe-area-inset-top)) 12px 12px; }
+  .connection { flex-wrap: wrap; gap: 8px; white-space: normal; }
+  #statusText { flex: 1 1 auto; }
+  .connection .device-select { flex: 1 1 100%; order: 1; }
+  .connection .button { flex: 1 1 40%; order: 2; min-width: 0; margin-left: 0; padding: 11px; }
+  .via-nav { margin-top: 0; padding: 9px 12px; }
+  .lock-banner, .notice, .dirty-indicator { margin-left: 12px; margin-right: 12px; }
+  .keymap-workbench { grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 12px 12px 0; }
+  .keymap-panel { padding: 12px; min-height: 0; overflow-x: auto; }
+  .panel-hint { display: none; }
+  .keymap-preview { grid-template-columns: repeat(4, min(64px, 17vw)); grid-template-rows: repeat(4, min(64px, 17vw)); padding: 20px 14px 22px; border-width: 10px; }
+  .keymap-preview .map-key { padding: 4px 4px 10px; }
+  .inspector-panel { min-height: 0; }
+  .palette { grid-template-columns: 1fr; margin: 12px 12px 0; }
+  .palette-rail { flex-direction: row; gap: 4px; padding: 8px; overflow-x: auto; }
+  .palette-category { flex: none; white-space: nowrap; }
+  .palette-keys { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 7px; padding: 10px; }
+  footer { margin: 12px; }
+}
