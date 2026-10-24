@@ -1,6 +1,9 @@
 /*
- * Power and Bluetooth status on an RGB LED (three PWM channels: red, green,
- * blue), dimmed to CONFIG_MACROPAD_STATUS_LED_BRIGHTNESS percent.
+ * Power and Bluetooth status on an RGB LED, dimmed to
+ * CONFIG_MACROPAD_STATUS_LED_BRIGHTNESS percent. The LED is either three PWM
+ * channels (status_led_red, status_led_green, status_led_blue) or, if the
+ * board has a node labelled status_pixel, the first pixel of that LED strip
+ * (an addressable WS2812).
  *
  * Power source, shown whenever nothing else is:
  *   green             running on USB power
@@ -21,6 +24,7 @@
  */
 
 #include <zephyr/devicetree.h>
+#include <zephyr/drivers/led_strip.h>
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
@@ -54,12 +58,19 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define BLUE BIT(2)
 #define OFF 0
 
+#define STATUS_PIXEL DT_NODELABEL(status_pixel)
+#define USE_PIXEL DT_NODE_HAS_STATUS(STATUS_PIXEL, okay)
+
+#if USE_PIXEL
+static const struct device *const pixel = DEVICE_DT_GET(STATUS_PIXEL);
+#else
 /* Order: red, green, blue. */
 static const struct pwm_dt_spec leds[] = {
     PWM_DT_SPEC_GET(DT_NODELABEL(status_led_red)),
     PWM_DT_SPEC_GET(DT_NODELABEL(status_led_green)),
     PWM_DT_SPEC_GET(DT_NODELABEL(status_led_blue)),
 };
+#endif
 
 static const uint8_t profile_colors[] = {BLUE, GREEN | BLUE, RED | BLUE};
 
@@ -72,11 +83,23 @@ static void status_led_tick(struct k_work *work);
 static K_WORK_DELAYABLE_DEFINE(status_led_work, status_led_tick);
 
 static void set_color(uint8_t color) {
+#if USE_PIXEL
+    uint8_t level = 255 * CONFIG_MACROPAD_STATUS_LED_BRIGHTNESS / 100;
+    struct led_rgb rgb = {
+        .r = (color & RED) ? level : 0,
+        .g = (color & GREEN) ? level : 0,
+        .b = (color & BLUE) ? level : 0,
+    };
+    /* Rewritten every tick: the pixel forgets its colour when the board cuts
+     * its power, so sending only changes could leave it dark. */
+    led_strip_update_rgb(pixel, &rgb, 1);
+#else
     for (size_t i = 0; i < ARRAY_SIZE(leds); i++) {
         uint32_t pulse =
             (color & BIT(i)) ? (leds[i].period / 100) * CONFIG_MACROPAD_STATUS_LED_BRIGHTNESS : 0;
         pwm_set_pulse_dt(&leds[i], pulse);
     }
+#endif
 }
 
 static bool usb_powered(void) {
@@ -147,6 +170,13 @@ ZMK_LISTENER(macropad_status_led, status_led_listener);
 ZMK_SUBSCRIPTION(macropad_status_led, zmk_ble_active_profile_changed);
 
 static int status_led_init(void) {
+#if USE_PIXEL
+    if (!device_is_ready(pixel)) {
+        LOG_ERR("Status LED pixel is not ready");
+        return -ENODEV;
+    }
+    set_color(OFF);
+#else
     for (size_t i = 0; i < ARRAY_SIZE(leds); i++) {
         if (!pwm_is_ready_dt(&leds[i])) {
             LOG_ERR("Status LED pin %d is not ready", (int)i);
@@ -154,6 +184,7 @@ static int status_led_init(void) {
         }
         pwm_set_pulse_dt(&leds[i], 0);
     }
+#endif
 
     k_work_reschedule(&status_led_work, K_MSEC(TICK_MS));
     return 0;
