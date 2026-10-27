@@ -12,6 +12,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <nrfx_pwm.h>
+#include <hal/nrf_gpio.h>
 
 #include "ir.h"
 
