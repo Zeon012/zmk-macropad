@@ -1,0 +1,5 @@
+config SHIELD_TVREMOTE
+    def_bool $(shields_list_contains,tvremote)
+
+config SHIELD_TVREMOTE_FINDER
+    def_bool $(shields_list_contains,tvremote_finder)

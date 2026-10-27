@@ -133,3 +133,37 @@ config MACROPAD_BOOT_KEY_COL
     default 1
 
 endif
+
+config MACROPAD_IR
+    bool "Infrared transmitter (&ir behavior)"
+    select NRFX_PWM2
+    help
+      Sends TV, AC and other remote-control codes on the pin named by
+      ir-gpios in the zephyr,user node (driving an IR LED's transistor,
+      high = on). Keys bound to &ir IR_POWER, &ir IR_VOL_UP and so on send
+      that function from the active code set; IR_SLOT_NEXT cycles sets.
+      Uses the nRF PWM2 peripheral, so nothing else may use pwm2.
+
+if MACROPAD_IR
+
+config MACROPAD_IR_SLOTS
+    int "Number of stored IR code sets"
+    range 1 8
+    default 4
+
+config MACROPAD_IR_MAX_PERIODS
+    int "Longest IR burst, in carrier periods"
+    default 6144
+    help
+      Two bytes of RAM each. Sony's three 45 ms frames at 40 kHz need about
+      5400; NEC needs about 2600.
+
+config MACROPAD_IR_REPEAT_DELAY_MS
+    int "Hold time before a repeatable IR function repeats"
+    default 400
+
+config MACROPAD_IR_REPEAT_MS
+    int "Interval between repeats while held"
+    default 110
+
+endif

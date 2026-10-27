@@ -1,0 +1,7 @@
+file_format: "1"
+id: tvremote
+name: TV Remote
+type: shield
+requires: [pro_micro]
+features:
+  - keys

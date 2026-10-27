@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT
+
+description: Sends an IR code from the active code set (src/ir)
+
+compatible: "zmk,behavior-ir"
+
+include: one_param.yaml

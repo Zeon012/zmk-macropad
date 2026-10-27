@@ -34,3 +34,12 @@ endif()
 if(CONFIG_MACROPAD_BOOT_KEY)
     target_sources(app PRIVATE src/macropad_boot_key.c)
 endif()
+
+if(CONFIG_MACROPAD_IR)
+    target_include_directories(app PRIVATE include)
+    target_sources(app PRIVATE
+        src/ir/ir_tx.c
+        src/ir/ir_codes.c
+        src/ir/behavior_ir.c
+    )
+endif()

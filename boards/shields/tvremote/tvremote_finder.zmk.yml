@@ -1,0 +1,7 @@
+file_format: "1"
+id: tvremote_finder
+name: TV Remote matrix finder
+type: shield
+requires: [pro_micro]
+features:
+  - keys

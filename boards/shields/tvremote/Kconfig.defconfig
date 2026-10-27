@@ -1,0 +1,6 @@
+if SHIELD_TVREMOTE || SHIELD_TVREMOTE_FINDER
+
+config ZMK_KEYBOARD_NAME
+    default "TV Remote"
+
+endif
