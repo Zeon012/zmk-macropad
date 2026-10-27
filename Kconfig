@@ -124,6 +124,12 @@ config MACROPAD_BOOT_KEY
 
 if MACROPAD_BOOT_KEY
 
+config MACROPAD_BOOT_KEY_ANY
+    bool "Any key, not one particular key"
+    help
+      For a board whose matrix isn't mapped yet. A key held down by accident
+      at power-up (a remote lying on a button) also lands in the bootloader.
+
 config MACROPAD_BOOT_KEY_ROW
     int "Row index of the boot key"
     default 0

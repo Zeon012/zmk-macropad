@@ -4,8 +4,9 @@
  * pins. It reads that switch directly, before the key scanner, USB, Bluetooth
  * or any feature module starts, so it works even if one of those misbehaves.
  *
- * The key is given by its kscan row and column index. With col2row diodes the
- * column is driven high and the row reads high while the key is down.
+ * The key is given by its kscan row and column index, or with
+ * MACROPAD_BOOT_KEY_ANY any key works. The column is driven active and the row
+ * reads active while the key is down (col2row).
  *
  * SPDX-License-Identifier: MIT
  */
@@ -24,26 +25,52 @@
 
 #define KSCAN DT_CHOSEN(zmk_kscan)
 
-static const struct gpio_dt_spec column =
-    GPIO_DT_SPEC_GET_BY_IDX(KSCAN, col_gpios, CONFIG_MACROPAD_BOOT_KEY_COL);
-static const struct gpio_dt_spec row =
-    GPIO_DT_SPEC_GET_BY_IDX(KSCAN, row_gpios, CONFIG_MACROPAD_BOOT_KEY_ROW);
+#if IS_ENABLED(CONFIG_MACROPAD_BOOT_KEY_ANY)
+/* Any key: every column driven at once, every row read. */
+#define SPEC(node, prop, idx) GPIO_DT_SPEC_GET_BY_IDX(node, prop, idx),
+static const struct gpio_dt_spec columns[] = {DT_FOREACH_PROP_ELEM(KSCAN, col_gpios, SPEC)};
+static const struct gpio_dt_spec rows[] = {DT_FOREACH_PROP_ELEM(KSCAN, row_gpios, SPEC)};
+#else
+static const struct gpio_dt_spec columns[] = {
+    GPIO_DT_SPEC_GET_BY_IDX(KSCAN, col_gpios, CONFIG_MACROPAD_BOOT_KEY_COL)};
+static const struct gpio_dt_spec rows[] = {
+    GPIO_DT_SPEC_GET_BY_IDX(KSCAN, row_gpios, CONFIG_MACROPAD_BOOT_KEY_ROW)};
+#endif
+
+/* Pin flags (active level, pull, open drain) come from devicetree, so this
+ * reads active-low matrices too. */
+static bool any_row_active(void) {
+    for (size_t i = 0; i < ARRAY_SIZE(rows); i++) {
+        if (gpio_pin_get_dt(&rows[i]) == 1) {
+            return true;
+        }
+    }
+    return false;
+}
 
 static bool boot_key_down(void) {
-    if (!gpio_is_ready_dt(&column) || !gpio_is_ready_dt(&row) ||
-        gpio_pin_configure_dt(&row, GPIO_INPUT) ||
-        gpio_pin_configure_dt(&column, GPIO_OUTPUT_ACTIVE)) {
-        return false;
+    for (size_t i = 0; i < ARRAY_SIZE(rows); i++) {
+        if (!gpio_is_ready_dt(&rows[i]) || gpio_pin_configure_dt(&rows[i], GPIO_INPUT)) {
+            return false;
+        }
+    }
+    for (size_t i = 0; i < ARRAY_SIZE(columns); i++) {
+        if (!gpio_is_ready_dt(&columns[i]) ||
+            gpio_pin_configure_dt(&columns[i], GPIO_OUTPUT_ACTIVE)) {
+            return false;
+        }
     }
     k_busy_wait(100);
     bool down = true;
     /* Ten reads a millisecond apart, so one bounce or glitch cannot trigger it. */
     for (int i = 0; i < 10 && down; i++) {
-        down = gpio_pin_get_dt(&row) == 1;
+        down = any_row_active();
         k_busy_wait(1000);
     }
-    /* Hand both pins back as plain inputs; the key scanner sets them up afterwards. */
-    gpio_pin_configure_dt(&column, GPIO_INPUT);
+    /* Hand the pins back as plain inputs; the key scanner sets them up afterwards. */
+    for (size_t i = 0; i < ARRAY_SIZE(columns); i++) {
+        gpio_pin_configure_dt(&columns[i], GPIO_INPUT);
+    }
     return down;
 }
 
