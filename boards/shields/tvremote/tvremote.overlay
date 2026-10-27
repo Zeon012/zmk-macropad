@@ -34,7 +34,7 @@
             , <&gpio1 6 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>   // chip pad 14, SuperMini 106
             , <&gpio0 31 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>   // chip pad 15, SuperMini 031
             , <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>   // chip pad 16, SuperMini 029
-            , <&gpio0 9 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>   // chip pad 17, SuperMini 009
+            , <&gpio0 10 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>   // chip pad 17, SuperMini 010
             , <&gpio1 15 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>   // chip pad 18, SuperMini 115
             , <&gpio1 13 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>   // chip pad 19, SuperMini 113
             , <&gpio1 11 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>   // chip pad 20, SuperMini 111
