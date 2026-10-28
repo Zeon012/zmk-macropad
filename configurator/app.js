@@ -212,7 +212,7 @@ function keyClasses(index) {
 function genericCap(binding) {
   if (!binding || binding.behavior !== 'Key Press') return 'mod';
   const name = Keys.keyName(binding.param1);
-  if (['Space', 'Up', 'Down', 'Left', 'Right'].includes(name)) return 'accent';
+  if (name === 'Space') return 'accent';   // as on the KB60's caps: a red space bar, blue arrows and mods
   return name.length === 1 ? 'alpha' : 'mod';
 }
 
