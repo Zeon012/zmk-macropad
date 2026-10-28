@@ -115,11 +115,46 @@
     return { steps };
   }
 
+  // Program launcher: Win+R, a pause for the Run box, the command, then Enter.
+  // Ctrl+Shift+Enter in the Run box starts the program as administrator.
+  const RUN_BOX_DELAY_MS = 400;
+  const RUN_KEYS = { open: 'Win+R', run: 'Enter', admin: 'Ctrl+Shift+Enter' };
+
+  function programToSteps(command, admin, keyPressBehaviorId) {
+    command = command.trim();
+    if (!command) return { error: 'Type a program, command or path.' };
+    if (command.includes('\n')) return { error: 'Keep the command on one line.' };
+    const typed = textToSteps(command);
+    if (typed.error) return typed;
+    const open = comboToSteps(`${RUN_KEYS.open}, ${RUN_BOX_DELAY_MS}ms`, keyPressBehaviorId).steps;
+    const run = comboToSteps(admin ? RUN_KEYS.admin : RUN_KEYS.run, keyPressBehaviorId).steps;
+    return { steps: [...open, ...typed.steps, ...run] };
+  }
+
+  // { command, admin } if the steps are exactly what programToSteps writes, else null.
+  function stepsToProgram(steps, keyPressBehaviorId) {
+    const tapCode = combo => comboToSteps(combo, keyPressBehaviorId).steps[0].tap.param1;
+    const isTap = (step, combo) => step.tap && (step.tap.behavior_id ?? 0) === keyPressBehaviorId &&
+      (step.tap.param1 ?? 0) === tapCode(combo);
+    if (steps.length < 4 || !isTap(steps[0], RUN_KEYS.open) || !steps[1].delay) return null;
+    const last = steps[steps.length - 1];
+    const admin = isTap(last, RUN_KEYS.admin);
+    if (!admin && !isTap(last, RUN_KEYS.run)) return null;
+    const middle = steps.slice(2, -1);
+    if (!middle.every(step => step.key_tap_sequence)) return null;
+    const chars = middle.flatMap(step => [...(step.key_tap_sequence.packed_keys || [])].map(key => charForPacked.get(key)));
+    if (chars.some(char => char === undefined)) return null;
+    return { command: chars.join(''), admin };
+  }
+
   // Turns stored steps back into something the editor can show:
-  // { mode: 'text' | 'combo', value }, or { mode: 'custom' } when the macro
-  // uses steps this editor does not write (press-and-hold, other behaviors).
+  // { mode: 'text' | 'combo', value }, { mode: 'program', value, admin }, or
+  // { mode: 'custom' } when the macro uses steps this editor does not write
+  // (press-and-hold, other behaviors).
   function stepsToEditable(steps, keyPressBehaviorId) {
     if (!steps.length) return { mode: 'text', value: '' };
+    const program = stepsToProgram(steps, keyPressBehaviorId);
+    if (program) return { mode: 'program', value: program.command, admin: program.admin };
     if (steps.every(step => step.key_tap_sequence)) {
       const chars = steps.flatMap(step => [...(step.key_tap_sequence.packed_keys || [])].map(key => charForPacked.get(key)));
       if (chars.every(char => char !== undefined)) return { mode: 'text', value: chars.join('') };
@@ -151,7 +186,18 @@
     ['File Explorer', 'Win+X, 250ms, E'], ['Run', 'Win+X, 250ms, R']
   ].map(([name, combo]) => ({ name, combo }));
 
-  const api = { SUBSYSTEM, Request, Response, MAX_TEXT_LENGTH, textToSteps, comboToSteps, stepsToEditable, presets };
+  // Programs the Run box knows by name. Anything else: paste its full path
+  // (Shift+right-click the .exe, Copy as path).
+  const programPresets = [
+    ['Terminal', 'wt'], ['Command Prompt', 'cmd'], ['PowerShell', 'powershell'],
+    ['File Explorer', 'explorer'], ['Downloads folder', 'shell:Downloads'], ['Task Manager', 'taskmgr'],
+    ['Settings', 'ms-settings:'], ['Control Panel', 'control'], ['Device Manager', 'devmgmt.msc'],
+    ['Notepad', 'notepad'], ['Calculator', 'calc'], ['Paint', 'mspaint'],
+    ['VS Code', 'code'], ['Chrome', 'chrome'], ['Edge', 'msedge'], ['Snipping Tool', 'snippingtool']
+  ].map(([name, command]) => ({ name, command }));
+
+  const api = { SUBSYSTEM, Request, Response, MAX_TEXT_LENGTH, textToSteps, comboToSteps, programToSteps,
+                stepsToEditable, presets, programPresets };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MacropadMacros = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

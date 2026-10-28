@@ -77,10 +77,12 @@
         <div class="macro-modes" role="tablist" aria-label="Macro type">
           <button type="button" class="macro-mode active" data-macro-mode="text">Text</button>
           <button type="button" class="macro-mode" data-macro-mode="combo">Key combos</button>
+          <button type="button" class="macro-mode" data-macro-mode="program">Program</button>
         </div>
         <label id="macroInputLabel" class="macro-input-label" for="macroInput">Text to type</label>
         <textarea id="macroInput" class="macro-input" rows="3" autocomplete="off" spellcheck="false"></textarea>
         <select id="macroPreset" class="macro-input" hidden></select>
+        <label id="macroAdminRow" class="macro-check" hidden><input type="checkbox" id="macroAdmin"> Run as administrator</label>
         <p id="macroInputHint" class="macro-input-hint"></p>
         <p id="macroError" class="macro-input-hint macro-error" aria-live="polite"></p>
         <div class="macro-dialog-actions">

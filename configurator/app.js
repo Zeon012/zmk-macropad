@@ -89,6 +89,8 @@ const macroInput = document.querySelector('#macroInput');
 const macroInputLabel = document.querySelector('#macroInputLabel');
 const macroInputHint = document.querySelector('#macroInputHint');
 const macroPreset = document.querySelector('#macroPreset');
+const macroAdmin = document.querySelector('#macroAdmin');
+const macroAdminRow = document.querySelector('#macroAdminRow');
 const macroError = document.querySelector('#macroError');
 const macroDelete = document.querySelector('#macroDelete');
 const macroSave = document.querySelector('#macroSave');
@@ -654,13 +656,23 @@ async function loadMacros() {
 function setMacroMode(mode) {
   macroMode = mode;
   document.querySelectorAll('[data-macro-mode]').forEach(tab => tab.classList.toggle('active', tab.dataset.macroMode === mode));
-  const combo = mode === 'combo';
-  macroInputLabel.textContent = combo ? 'Key combos' : 'Text to type';
-  macroInput.placeholder = combo ? 'Example: Ctrl+Shift+S, 150ms, Enter' : 'Example: hello@example.com';
-  macroInputHint.textContent = combo
-    ? 'Separate combos with commas. Add a pause like 150ms between them when a menu needs time to open.'
-    : `Up to ${Macros.MAX_TEXT_LENGTH} characters. A new line presses Enter.`;
-  macroPreset.hidden = !combo;
+  const text = {
+    text: ['Text to type', 'Example: hello@example.com',
+           `Up to ${Macros.MAX_TEXT_LENGTH} characters. A new line presses Enter.`],
+    combo: ['Key combos', 'Example: Ctrl+Shift+S, 150ms, Enter',
+            'Separate combos with commas. Add a pause like 150ms between them when a menu needs time to open.'],
+    program: ['Program, command or path', 'Example: wt',
+              'Opened through Win+R. For any other program, paste its full path ' +
+              '(Shift+right-click the .exe, Copy as path). Works on any Windows PC, no app needed.']
+  }[mode];
+  [macroInputLabel.textContent, macroInput.placeholder, macroInputHint.textContent] = text;
+  macroInput.rows = mode === 'program' ? 1 : 3;
+  const presets = mode === 'combo'
+    ? Macros.presets.map(preset => new Option(preset.name, preset.combo))
+    : Macros.programPresets.map(preset => new Option(`${preset.name} (${preset.command})`, preset.command));
+  macroPreset.replaceChildren(new Option(mode === 'combo' ? 'Insert a quick link...' : 'Pick a program...', ''), ...presets);
+  macroPreset.hidden = mode === 'text';
+  macroAdminRow.hidden = mode !== 'program';
 }
 
 async function openMacroDialog(macro) {
@@ -672,7 +684,7 @@ async function openMacroDialog(macro) {
   macroName.maxLength = macroLimits.maxNameLength;
   macroDelete.hidden = !macro;
   macroInput.value = '';
-  macroPreset.selectedIndex = 0;
+  macroAdmin.checked = false;
   setMacroMode('text');
   if (macro) {
     try {
@@ -683,6 +695,7 @@ async function openMacroDialog(macro) {
       } else {
         setMacroMode(editableSteps.mode);
         macroInput.value = editableSteps.value;
+        macroAdmin.checked = Boolean(editableSteps.admin);
       }
     } catch (error) {
       showNotice(describeError(error), true);
@@ -700,8 +713,8 @@ async function saveMacro() {
     if (macros.some(macro => macro.name === name)) return void (macroError.textContent = 'A macro with that name already exists.');
   }
   const keyPressId = macroLimits.keyPressBehaviorId ?? behaviorIds.get('Key Press');
-  const converted = macroMode === 'combo'
-    ? Macros.comboToSteps(macroInput.value, keyPressId)
+  const converted = macroMode === 'combo' ? Macros.comboToSteps(macroInput.value, keyPressId)
+    : macroMode === 'program' ? Macros.programToSteps(macroInput.value, macroAdmin.checked, keyPressId)
     : Macros.textToSteps(macroInput.value);
   if (converted.error) return void (macroError.textContent = converted.error);
 
@@ -958,12 +971,12 @@ discardButton.addEventListener('click', async () => {
 document.querySelectorAll('[data-macro-mode]').forEach(tab => {
   tab.addEventListener('click', () => setMacroMode(tab.dataset.macroMode));
 });
-macroPreset.replaceChildren(new Option('Insert a quick link...', ''),
-                            ...Macros.presets.map(preset => new Option(preset.name, preset.combo)));
 macroPreset.addEventListener('change', () => {
   if (!macroPreset.value) return;
   macroInput.value = macroPreset.value;
-  if (!editingMacro && !macroName.value.trim()) macroName.value = macroPreset.selectedOptions[0].textContent;
+  const label = macroPreset.selectedOptions[0].textContent.replace(/ \(.*\)$/, '');
+  if (!editingMacro && !macroName.value.trim()) macroName.value = label;
+  macroPreset.selectedIndex = 0;
 });
 document.querySelector('#macroCancel').addEventListener('click', () => macroDialog.close());
 testerToggle.addEventListener('click', () => setTester(!testerOn));

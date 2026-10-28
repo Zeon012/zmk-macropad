@@ -1,5 +1,9 @@
 Portable Windows app for configuring ZMK devices built from this project. No install: download `Macropad-Configurator-Portable.exe` and run it.
 
+## New in 1.0.6
+
+- **Program macros.** A new **Program** type in the macro editor launches a program: pick one from the list (Terminal, Explorer, Task Manager, Settings, VS Code, Chrome and more) or paste any program's full path, and tick **Run as administrator** if needed. The key opens Win+R, types the command and runs it, so it works on any Windows PC without this app running.
+
 ## New in 1.0.5
 
 - **Connect USB** also finds the KB60 keyboard, which now has its own USB ID (1209:0001) instead of sharing ZMK's with the macropad.

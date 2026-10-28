@@ -79,7 +79,8 @@ h1 { margin-top: 8px; font-size: clamp(2.5rem, 6vw, 5.2rem); line-height: .92; l
 .macro-dialog { width: min(440px, calc(100% - 32px)); padding: 0; color: #ddd; background: transparent; border: 0; }
 .macro-dialog::backdrop { background: rgba(0,0,0,.65); }
 .macro-dialog-card { display: grid; gap: 12px; padding: 20px; background: #262626; border: 1px solid #555; box-shadow: 0 18px 50px rgba(0,0,0,.35); }
-.macro-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.macro-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.macro-check:not([hidden]) { display: flex; align-items: center; gap: 8px; color: #ccc; font: 12px 'DM Mono', monospace; cursor: pointer; }
 .macro-mode { padding: 9px; color: #aaa; background: #343434; border: 1px solid #555; font: 11px 'DM Mono', monospace; }
 .macro-mode.active { color: #242424; background: #e0bfb3; border-color: #f1d0c2; }
 .macro-input-label { color: #aaa; font: 10px 'DM Mono', monospace; text-transform: uppercase; }
