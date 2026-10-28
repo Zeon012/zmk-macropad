@@ -3,6 +3,7 @@ Portable Windows app for configuring ZMK devices built from this project. No ins
 ## New in 1.0.6
 
 - **Program macros.** A new **Program** type in the macro editor launches a program: pick one from the list (apps like Terminal, Explorer, VS Code and Chrome; Windows tools like Services, Event Viewer and Registry Editor; and RSAT server tools like AD Users and Computers, Group Policy Management, DNS and DHCP) or paste any program's full path, and tick **Run as administrator** if needed. The key opens Win+R, types the command and runs it, so it works on any Windows PC without this app running.
+- **ANDROID key tab** for a device paired to a phone or tablet: keys that open the browser, email, maps, calculator, settings and the assistant, and keys for Home, Back, recent apps, all apps, notifications, lock, screenshot and the shortcut list, using Android's own keyboard shortcuts.
 
 ## New in 1.0.5
 

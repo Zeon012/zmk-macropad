@@ -53,7 +53,7 @@ const STATUS_SUBSYSTEM = 'macropad__status';
 const STATUS_POLL_MS = 5000;
 const SET_BINDING_ERRORS = ['', 'That key position is not valid.', 'The device rejected that action.',
                             'The device rejected the settings for that action.'];
-const categoryOrder = ['BASIC', 'MEDIA', 'MOUSE', 'LAYERS', 'SPECIAL', 'APPS', 'MACRO', 'DEVICE'];
+const categoryOrder = ['BASIC', 'MEDIA', 'MOUSE', 'LAYERS', 'SPECIAL', 'APPS', 'ANDROID', 'MACRO', 'DEVICE'];
 
 const keymapPreview = document.querySelector('#keymapPreview');
 const connectButton = document.querySelector('#connectButton');

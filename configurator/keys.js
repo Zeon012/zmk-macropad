@@ -58,6 +58,8 @@
   const range = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => `F${from + i}`);
   const HYPER = 0x0f; // Ctrl + Shift + Alt + Win, the Microsoft 365 app shortcuts
   const WIN = 0x08;
+  const ALT = 0x04;
+  const CTRL = 0x01;
 
   // Layer and macro entries are added at runtime from the device.
   const palette = {
@@ -74,6 +76,13 @@
            combo('Win + X menu', WIN, 'X'), combo('Win + R Run', WIN, 'R'),
            combo('Win + E Explorer', WIN, 'E'), combo('Win + I Settings', WIN, 'I'),
            combo('Win + D Desktop', WIN, 'D'), combo('Win + L Lock', WIN, 'L')],
+    // Android's own keyboard shortcuts (Meta is the Win key), for a device paired
+    // to a phone or tablet. Only the ones that have stayed the same across versions.
+    ANDROID: [combo('Browser', WIN, 'B'), combo('Email', WIN, 'E'), combo('Maps', WIN, 'M'),
+              combo('Calculator', WIN, 'U'), combo('Settings', WIN, 'I'), combo('Assistant', WIN, 'A'),
+              kp('All apps', usage(PAGE_KEYBOARD, keyboardId('Win key'))), combo('Home', WIN, 'Enter'), combo('Back', WIN, 'Backspace'),
+              combo('Recent apps', ALT, 'Tab'), combo('Notifications', WIN, 'N'), combo('Lock', WIN, 'L'),
+              combo('Screenshot', WIN | CTRL, 'S'), combo('Shortcut list', WIN, '/')],
     // Scrolling is knob-only: the pad cannot check a scroll binding on a key.
     // 80 units a second for a 24 ms tap comes out as exactly one wheel notch.
     MOUSE: [scroll('Scroll up', 0, SCROLL_SPEED), scroll('Scroll down', 0, -SCROLL_SPEED),
