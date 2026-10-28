@@ -1,8 +1,9 @@
 Android app for configuring ZMK devices built from this project: the macropad and the KB60 keyboard. It connects over Bluetooth. Download `Macropad-Configurator.apk` on your phone and open it to install. Android asks once to allow installing apps from your browser or file manager.
 
-## New in 1.0.4
+## New in 1.0.5
 
-- **Runs in landscape**, either way up, so a full keyboard like the KB60 has room. The top bar is compact on a sideways phone.
+- **Runs in landscape**, either way up, so a full keyboard like the KB60 has room. The top bar is compact on a sideways phone and clears the status bar.
+- **Readable keycaps** on a full keyboard: short names (Bksp, Del, Ctrl, Shift, Caps) and text that shrinks to fit small keys instead of breaking mid-word.
 
 ## New in 1.0.3
 

@@ -216,6 +216,15 @@ function genericCap(binding) {
   return name.length === 1 ? 'alpha' : 'mod';
 }
 
+// Short key names for the small caps of a full keyboard drawing.
+const CAP_NAMES = [
+  ['Ctrl key', 'Ctrl'], ['Shift key', 'Shift'], ['Alt key', 'Alt'], ['Win key', 'Win'],
+  ['Right Ctrl', 'RCtrl'], ['Right Shift', 'RShift'], ['Right Alt', 'RAlt'], ['Right Win', 'RWin'],
+  ['Backspace', 'Bksp'], ['Delete', 'Del'], ['Caps Lock', 'Caps'], ['Page Up', 'PgUp'],
+  ['Page Down', 'PgDn'], ['Print Screen', 'PrtSc'], ['Scroll Lock', 'ScrLk'], ['Insert', 'Ins']
+];
+const capText = text => CAP_NAMES.reduce((out, [long, short]) => out.split(long).join(short), text);
+
 // Any device other than the macropad: keys placed where its layout says.
 function renderGenericBoard() {
   knobCaption.hidden = true;
@@ -243,7 +252,11 @@ function renderGenericBoard() {
     button.title = control.name;
     const label = document.createElement('span');
     label.className = 'generic-label';
-    label.textContent = bindings[index] ? labelFor(bindings[index]) : '';
+    label.textContent = bindings[index] ? capText(labelFor(bindings[index])) : '';
+    // Shrink the text until its longest word fits the cap (DM Mono is about 0.62em a character).
+    const longestWord = Math.max(1, ...label.textContent.split(/\s+/).map(word => word.length));
+    const fitPx = ((control.w / 100) * unit - 14) / (longestWord * 0.62);
+    label.style.fontSize = `${Math.max(7, Math.min(11, fitPx)).toFixed(1)}px`;
     button.append(label);
     button.addEventListener('click', () => {
       selectedIndex = index;
