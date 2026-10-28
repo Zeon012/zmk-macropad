@@ -186,15 +186,33 @@
     ['File Explorer', 'Win+X, 250ms, E'], ['Run', 'Win+X, 250ms, R']
   ].map(([name, combo]) => ({ name, combo }));
 
-  // Programs the Run box knows by name. Anything else: paste its full path
-  // (Shift+right-click the .exe, Copy as path).
-  const programPresets = [
-    ['Terminal', 'wt'], ['Command Prompt', 'cmd'], ['PowerShell', 'powershell'],
-    ['File Explorer', 'explorer'], ['Downloads folder', 'shell:Downloads'], ['Task Manager', 'taskmgr'],
-    ['Settings', 'ms-settings:'], ['Control Panel', 'control'], ['Device Manager', 'devmgmt.msc'],
-    ['Notepad', 'notepad'], ['Calculator', 'calc'], ['Paint', 'mspaint'],
-    ['VS Code', 'code'], ['Chrome', 'chrome'], ['Edge', 'msedge'], ['Snipping Tool', 'snippingtool']
-  ].map(([name, command]) => ({ name, command }));
+  // Programs the Run box knows by name, by group. Anything else: paste its full
+  // path (Shift+right-click the .exe, Copy as path). The RSAT ones need the
+  // Remote Server Administration Tools installed (Settings > Optional features).
+  const programGroups = {
+    Apps: [
+      ['Terminal', 'wt'], ['Command Prompt', 'cmd'], ['PowerShell', 'powershell'],
+      ['File Explorer', 'explorer'], ['Downloads folder', 'shell:Downloads'], ['Notepad', 'notepad'],
+      ['Calculator', 'calc'], ['Paint', 'mspaint'], ['Snipping Tool', 'snippingtool'],
+      ['VS Code', 'code'], ['Chrome', 'chrome'], ['Edge', 'msedge'], ['Remote Desktop', 'mstsc']
+    ],
+    'Windows tools': [
+      ['Settings', 'ms-settings:'], ['Control Panel', 'control'], ['Task Manager', 'taskmgr'],
+      ['Device Manager', 'devmgmt.msc'], ['Disk Management', 'diskmgmt.msc'],
+      ['Computer Management', 'compmgmt.msc'], ['Services', 'services.msc'], ['Event Viewer', 'eventvwr.msc'],
+      ['Local Users and Groups', 'lusrmgr.msc'], ['Local Group Policy', 'gpedit.msc'],
+      ['Registry Editor', 'regedit'], ['Network Connections', 'ncpa.cpl'], ['System Properties', 'sysdm.cpl']
+    ],
+    'RSAT (server admin)': [
+      ['AD Users and Computers', 'dsa.msc'], ['AD Administrative Center', 'dsac'],
+      ['AD Sites and Services', 'dssite.msc'], ['AD Domains and Trusts', 'domain.msc'],
+      ['ADSI Edit', 'adsiedit.msc'], ['Group Policy Management', 'gpmc.msc'], ['DNS', 'dnsmgmt.msc'],
+      ['DHCP', 'dhcpmgmt.msc'], ['Server Manager', 'servermanager'], ['Certification Authority', 'certsrv.msc'],
+      ['Failover Cluster Manager', 'cluadmin.msc'], ['Print Management', 'printmanagement.msc']
+    ]
+  };
+  const programPresets = Object.entries(programGroups).flatMap(([group, items]) =>
+    items.map(([name, command]) => ({ group, name, command })));
 
   const api = { SUBSYSTEM, Request, Response, MAX_TEXT_LENGTH, textToSteps, comboToSteps, programToSteps,
                 stepsToEditable, presets, programPresets };

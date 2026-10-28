@@ -667,9 +667,21 @@ function setMacroMode(mode) {
   }[mode];
   [macroInputLabel.textContent, macroInput.placeholder, macroInputHint.textContent] = text;
   macroInput.rows = mode === 'program' ? 1 : 3;
-  const presets = mode === 'combo'
-    ? Macros.presets.map(preset => new Option(preset.name, preset.combo))
-    : Macros.programPresets.map(preset => new Option(`${preset.name} (${preset.command})`, preset.command));
+  let presets;
+  if (mode === 'combo') {
+    presets = Macros.presets.map(preset => new Option(preset.name, preset.combo));
+  } else {
+    const groups = new Map();
+    for (const preset of Macros.programPresets) {
+      if (!groups.has(preset.group)) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = preset.group;
+        groups.set(preset.group, optgroup);
+      }
+      groups.get(preset.group).append(new Option(`${preset.name} (${preset.command})`, preset.command));
+    }
+    presets = [...groups.values()];
+  }
   macroPreset.replaceChildren(new Option(mode === 'combo' ? 'Insert a quick link...' : 'Pick a program...', ''), ...presets);
   macroPreset.hidden = mode === 'text';
   macroAdminRow.hidden = mode !== 'program';

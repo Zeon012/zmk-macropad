@@ -2,7 +2,7 @@ Portable Windows app for configuring ZMK devices built from this project. No ins
 
 ## New in 1.0.6
 
-- **Program macros.** A new **Program** type in the macro editor launches a program: pick one from the list (Terminal, Explorer, Task Manager, Settings, VS Code, Chrome and more) or paste any program's full path, and tick **Run as administrator** if needed. The key opens Win+R, types the command and runs it, so it works on any Windows PC without this app running.
+- **Program macros.** A new **Program** type in the macro editor launches a program: pick one from the list (apps like Terminal, Explorer, VS Code and Chrome; Windows tools like Services, Event Viewer and Registry Editor; and RSAT server tools like AD Users and Computers, Group Policy Management, DNS and DHCP) or paste any program's full path, and tick **Run as administrator** if needed. The key opens Win+R, types the command and runs it, so it works on any Windows PC without this app running.
 
 ## New in 1.0.5
 
