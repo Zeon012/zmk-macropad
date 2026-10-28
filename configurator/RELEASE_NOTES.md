@@ -1,5 +1,10 @@
 Portable Windows app for configuring ZMK devices built from this project. No install: download `Macropad-Configurator-Portable.exe` and run it.
 
+## New in 1.0.7
+
+- **Readable keys on a full keyboard** like the KB60: short names on the drawing (Bksp, Del, Caps, BT 1, USB/BT, Vol+, Prev, Boot, Unlock; ▽ for Transparent; a layer key shows just the layer; a macro just its name), with text that shrinks to fit small keys.
+- The keyboard drawing resizes with the window.
+
 ## New in 1.0.6
 
 - **Program macros.** A new **Program** type in the macro editor launches a program: pick one from the list (apps like Terminal, Explorer, VS Code and Chrome; Windows tools like Services, Event Viewer and Registry Editor; and RSAT server tools like AD Users and Computers, Group Policy Management, DNS and DHCP) or paste any program's full path, and tick **Run as administrator** if needed. The key opens Win+R, types the command and runs it, so it works on any Windows PC without this app running.
