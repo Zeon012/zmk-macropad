@@ -409,3 +409,19 @@ body { background: var(--surface); }
   .palette-keys { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 7px; padding: 10px; }
   footer { margin: 12px; }
 }
+
+/* ---- Phones held sideways (the Android app runs in landscape) ---- */
+@media (orientation: landscape) and (max-height: 520px) {
+  .shell { padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  .topbar { flex-wrap: wrap; gap: 6px 12px; min-height: 0; padding: 6px 12px; }
+  .topbar .eyebrow { display: none; }
+  h1 { font-size: 1rem; }
+  .connection { flex: 1 1 auto; flex-wrap: wrap; justify-content: flex-end; gap: 6px; white-space: normal; }
+  .topbar .button, .device-select { padding: 6px 10px; font-size: .8rem; }
+  .via-nav { padding: 5px 12px; }
+  .keymap-workbench { gap: 10px; margin: 10px 12px 0; }
+  .keymap-panel { padding: 10px; min-height: 0; overflow-x: auto; }
+  .panel-hint { display: none; }
+  .palette { margin: 10px 12px 0; }
+  footer { margin: 10px 12px; }
+}
