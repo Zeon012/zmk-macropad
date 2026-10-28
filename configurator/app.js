@@ -216,14 +216,21 @@ function genericCap(binding) {
   return name.length === 1 ? 'alpha' : 'mod';
 }
 
-// Short key names for the small caps of a full keyboard drawing.
+// Short key names for the small caps of a full keyboard drawing, applied in order.
 const CAP_NAMES = [
-  ['Ctrl key', 'Ctrl'], ['Shift key', 'Shift'], ['Alt key', 'Alt'], ['Win key', 'Win'],
-  ['Right Ctrl', 'RCtrl'], ['Right Shift', 'RShift'], ['Right Alt', 'RAlt'], ['Right Win', 'RWin'],
-  ['Backspace', 'Bksp'], ['Delete', 'Del'], ['Caps Lock', 'Caps'], ['Page Up', 'PgUp'],
-  ['Page Down', 'PgDn'], ['Print Screen', 'PrtSc'], ['Scroll Lock', 'ScrLk'], ['Insert', 'Ins']
+  [/^Transparent$/, '▽'], [/^None$/, ''], [/^Macro: /, ''], [/^Hold: /, ''],
+  [/^Toggle: /, 'Tog '], [/^Go to: /, 'To '],
+  [/Bluetooth off/, 'BT off'], [/Bluetooth clear all/, 'BT clr all'], [/Bluetooth clear/, 'BT clr'],
+  [/Bluetooth disconnect/, 'BT disc'], [/USB \/ Bluetooth/, 'USB/BT'], [/Bluetooth/, 'BT'],
+  [/Ctrl key/, 'Ctrl'], [/Shift key/, 'Shift'], [/Alt key/, 'Alt'], [/Win key/, 'Win'],
+  [/Right Ctrl/, 'RCtrl'], [/Right Shift/, 'RShift'], [/Right Alt/, 'RAlt'], [/Right Win/, 'RWin'],
+  [/Backspace/, 'Bksp'], [/Delete/, 'Del'], [/Caps Lock/, 'Caps'], [/Page Up/, 'PgUp'],
+  [/Page Down/, 'PgDn'], [/Print Screen/, 'PrtSc'], [/Scroll Lock/, 'ScrLk'], [/Insert/, 'Ins'],
+  [/Volume up/, 'Vol+'], [/Volume down/, 'Vol−'], [/Previous track/, 'Prev'], [/Next track/, 'Next'],
+  [/Brightness up/, 'Bri+'], [/Brightness down/, 'Bri−'], [/Flashing mode/, 'Boot'],
+  [/Studio unlock/, 'Unlock'], [/Restart/, 'Reset']
 ];
-const capText = text => CAP_NAMES.reduce((out, [long, short]) => out.split(long).join(short), text);
+const capText = text => CAP_NAMES.reduce((out, [pattern, short]) => out.replace(pattern, short), text);
 
 // Any device other than the macropad: keys placed where its layout says.
 function renderGenericBoard() {
@@ -257,6 +264,7 @@ function renderGenericBoard() {
     const longestWord = Math.max(1, ...label.textContent.split(/\s+/).map(word => word.length));
     const fitPx = ((control.w / 100) * unit - 14) / (longestWord * 0.62);
     label.style.fontSize = `${Math.max(7, Math.min(11, fitPx)).toFixed(1)}px`;
+    if (fitPx < 7) label.style.overflowWrap = 'anywhere';   // still too long: break mid-word rather than clip
     button.append(label);
     button.addEventListener('click', () => {
       selectedIndex = index;
