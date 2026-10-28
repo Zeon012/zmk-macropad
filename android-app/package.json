@@ -1,6 +1,6 @@
 {
   "name": "macropad-configurator-android",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "description": "Android app for the ZMK macropad configurator, connecting over Bluetooth",
   "scripts": {

@@ -246,7 +246,11 @@ function renderGenericBoard() {
   }
   const right = Math.max(...controls.map(key => key.x + key.w));
   const bottom = Math.max(...controls.map(key => key.y + key.h));
-  const available = keymapPreview.parentElement.clientWidth - 80;
+  // Room for the keys: the panel's inner width less the board's frame and its 20px margin.
+  const panelStyle = getComputedStyle(keymapPreview.parentElement);
+  const frame = parseFloat(getComputedStyle(keymapPreview).borderLeftWidth) || 0;
+  const available = keymapPreview.parentElement.clientWidth - parseFloat(panelStyle.paddingLeft) -
+    parseFloat(panelStyle.paddingRight) - 2 * frame - 24;
   const unit = Math.max(24, Math.min(GENERIC_UNIT_PX, Math.floor(available / (right / 100))));
   keymapPreview.style.cssText = `width: ${(right / 100) * unit + 20}px; height: ${(bottom / 100) * unit + 20}px`;
 
@@ -262,9 +266,9 @@ function renderGenericBoard() {
     label.textContent = bindings[index] ? capText(labelFor(bindings[index])) : '';
     // Shrink the text until its longest word fits the cap (DM Mono is about 0.62em a character).
     const longestWord = Math.max(1, ...label.textContent.split(/\s+/).map(word => word.length));
-    const fitPx = ((control.w / 100) * unit - 14) / (longestWord * 0.62);
-    label.style.fontSize = `${Math.max(7, Math.min(11, fitPx)).toFixed(1)}px`;
-    if (fitPx < 7) label.style.overflowWrap = 'anywhere';   // still too long: break mid-word rather than clip
+    const fitPx = ((control.w / 100) * unit - 10) / (longestWord * 0.62);
+    label.style.fontSize = `${Math.max(6.5, Math.min(11, fitPx)).toFixed(1)}px`;
+    if (fitPx < 6.5) label.style.overflowWrap = 'anywhere';   // still too long: break mid-word rather than clip
     button.append(label);
     button.addEventListener('click', () => {
       selectedIndex = index;
@@ -1015,6 +1019,13 @@ document.querySelector('#macroCancel').addEventListener('click', () => macroDial
 testerToggle.addEventListener('click', () => setTester(!testerOn));
 macroSave.addEventListener('click', saveMacro);
 macroDelete.addEventListener('click', deleteMacro);
+
+// A full keyboard's drawing is sized to the panel, so redraw it when the window changes size.
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (!isPad()) renderKeymap(); }, 150);
+});
 
 if (Transports.isNativeApp) {
   document.querySelector('#hostHint').textContent =
