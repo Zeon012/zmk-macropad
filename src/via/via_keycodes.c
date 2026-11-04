@@ -2,8 +2,8 @@
  * Translation between QMK's 16-bit keycodes (what VIA reads and writes) and
  * ZMK behavior bindings. Covered: plain keys, keys with modifiers, media and
  * system keys, layer keys (momentary, toggle, to), VIA macros, bootloader and
- * reset, and the macropad's Bluetooth/output/unlock/off keys as VIA custom
- * keycodes. Anything else shows in VIA as "ZMK" and is left alone.
+ * reset, RGB underglow keys (QMK's lighting keycodes), and the macropad's
+ * Bluetooth/output/unlock/off keys as VIA custom keycodes. Anything else shows in VIA as "ZMK" and is left alone.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -17,6 +17,7 @@
 #include <dt-bindings/zmk/hid_usage_pages.h>
 #include <dt-bindings/zmk/modifiers.h>
 #include <dt-bindings/zmk/outputs.h>
+#include <dt-bindings/zmk/rgb.h>
 #include <zmk/behavior.h>
 #include <zmk/keymap.h>
 
@@ -35,6 +36,13 @@
 #define QK_BOOTLOADER 0x7C00
 #define QK_REBOOT 0x7C01
 #define QK_KB 0x7E00
+#define QK_UNDERGLOW 0x7820   /* QK_UNDERGLOW_TOGGLE; the next ten follow in this order */
+
+/* QMK underglow keycodes 0x7820-0x782A, in order, as ZMK &rgb_ug commands. */
+static const uint8_t underglow_cmds[] = {
+    RGB_TOG_CMD, RGB_EFF_CMD, RGB_EFR_CMD, RGB_HUI_CMD, RGB_HUD_CMD, RGB_SAI_CMD,
+    RGB_SAD_CMD, RGB_BRI_CMD, RGB_BRD_CMD, RGB_SPI_CMD, RGB_SPD_CMD,
+};
 
 /* QMK puts modifiers in bits 8-12: ctrl, shift, alt, gui, and "right hand". */
 #define QMK_MOD_RIGHT 0x10
@@ -200,6 +208,13 @@ uint16_t via_keycode_from_binding(const struct zmk_behavior_binding *binding) {
     if (named(binding, "bt_off")) {
         return QK_KB + VIA_CUSTOM_BT_OFF;
     }
+    if (named(binding, "rgb_ug")) {
+        for (size_t i = 0; i < ARRAY_SIZE(underglow_cmds); i++) {
+            if (underglow_cmds[i] == binding->param1) {
+                return QK_UNDERGLOW + i;
+            }
+        }
+    }
     return VIA_KC_ZMK_OTHER;
 }
 
@@ -247,6 +262,10 @@ bool via_keycode_to_binding(uint16_t keycode, struct zmk_behavior_binding *out) 
             return false;
         }
         return via_make_binding(name, id, 0, out);
+    }
+    if (keycode >= QK_UNDERGLOW && keycode < QK_UNDERGLOW + ARRAY_SIZE(underglow_cmds)) {
+        /* false on firmware without underglow, so VIA leaves the key unchanged */
+        return via_make_binding("rgb_ug", underglow_cmds[keycode - QK_UNDERGLOW], 0, out);
     }
     if (keycode >= QK_MACRO && keycode <= QK_MACRO_MAX) {
         uint8_t index = keycode - QK_MACRO;

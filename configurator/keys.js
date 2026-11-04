@@ -93,7 +93,14 @@
              plain('Bluetooth 3', 'Bluetooth', 3, 2), plain('Bluetooth clear', 'Bluetooth', 0, 0),
              plain('Bluetooth off', 'Bluetooth Off'), plain('USB / Bluetooth', 'Output Selection', 0),
              plain('Studio unlock', 'Studio Unlock'),
-             plain('Flashing mode', 'Bootloader'), plain('Restart', 'Reset')]
+             plain('Flashing mode', 'Bootloader'), plain('Restart', 'Reset')],
+    // ZMK underglow (&rgb_ug); param1 is the RGB_*_CMD value from dt-bindings/zmk/rgb.h.
+    RGB: [plain('Lights on/off', 'Underglow', 0), plain('Lights on', 'Underglow', 1),
+          plain('Lights off', 'Underglow', 2), plain('Next effect', 'Underglow', 11),
+          plain('Previous effect', 'Underglow', 12), plain('Brighter', 'Underglow', 7),
+          plain('Dimmer', 'Underglow', 8), plain('Hue +', 'Underglow', 3), plain('Hue -', 'Underglow', 4),
+          plain('Saturation +', 'Underglow', 5), plain('Saturation -', 'Underglow', 6),
+          plain('Faster', 'Underglow', 9), plain('Slower', 'Underglow', 10)]
   };
 
   function keyName(code) {
@@ -138,6 +145,9 @@
       case 'Bootloader': return 'Flashing mode';
       case 'Reset': return 'Restart';
       case 'Studio Unlock': return 'Studio unlock';
+      case 'Underglow':
+        return ['Lights on/off', 'Lights on', 'Lights off', 'Hue +', 'Hue -', 'Saturation +', 'Saturation -',
+                'Brighter', 'Dimmer', 'Faster', 'Slower', 'Next effect', 'Previous effect'][param1] || 'Lights';
       default: return behavior || 'Unknown';
     }
   }
