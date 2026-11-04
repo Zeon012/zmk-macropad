@@ -53,7 +53,7 @@ const STATUS_SUBSYSTEM = 'macropad__status';
 const STATUS_POLL_MS = 5000;
 const SET_BINDING_ERRORS = ['', 'That key position is not valid.', 'The device rejected that action.',
                             'The device rejected the settings for that action.'];
-const categoryOrder = ['BASIC', 'MEDIA', 'MOUSE', 'LAYERS', 'SPECIAL', 'APPS', 'ANDROID', 'MACRO', 'DEVICE'];
+const categoryOrder = ['BASIC', 'MEDIA', 'MOUSE', 'LAYERS', 'SPECIAL', 'APPS', 'ANDROID', 'MACRO', 'DEVICE', 'RGB'];
 
 const keymapPreview = document.querySelector('#keymapPreview');
 const connectButton = document.querySelector('#connectButton');
@@ -212,7 +212,7 @@ function keyClasses(index) {
 function genericCap(binding) {
   if (!binding || binding.behavior !== 'Key Press') return 'mod';
   const name = Keys.keyName(binding.param1);
-  if (['Space', 'Up', 'Down', 'Left', 'Right'].includes(name)) return 'accent';
+  if (name === 'Space') return 'accent';   // as on the KB60's caps: a red space bar, blue arrows and mods
   return name.length === 1 ? 'alpha' : 'mod';
 }
 

@@ -49,7 +49,7 @@
     }
   ],
   "menus": [],
-  "keycodes": [],
+  "keycodes": ["qmk_lighting"],
   "layouts": {
     "keymap": [
       [
