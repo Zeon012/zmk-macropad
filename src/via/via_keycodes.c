@@ -57,6 +57,7 @@ enum via_custom {
     VIA_CUSTOM_STUDIO_UNLOCK,
     VIA_CUSTOM_ZMK_OTHER,
     VIA_CUSTOM_BT_OFF,
+    VIA_CUSTOM_LIGHTBAR_MODE,
 };
 
 /* QMK basic keycodes 0xA5-0xBE stand for system and consumer usages. */
@@ -208,6 +209,9 @@ uint16_t via_keycode_from_binding(const struct zmk_behavior_binding *binding) {
     if (named(binding, "bt_off")) {
         return QK_KB + VIA_CUSTOM_BT_OFF;
     }
+    if (named(binding, "lb_mode")) {
+        return QK_KB + VIA_CUSTOM_LIGHTBAR_MODE;
+    }
     if (named(binding, "rgb_ug")) {
         for (size_t i = 0; i < ARRAY_SIZE(underglow_cmds); i++) {
             if (underglow_cmds[i] == binding->param1) {
@@ -289,6 +293,9 @@ bool via_keycode_to_binding(uint16_t keycode, struct zmk_behavior_binding *out) 
     case QK_KB + VIA_CUSTOM_BT_OFF:
         /* The keymap's bt_off macro; false on keymaps without it. */
         return via_make_binding("bt_off", 0, 0, out);
+    case QK_KB + VIA_CUSTOM_LIGHTBAR_MODE:
+        /* false on firmware without the light bar module */
+        return via_make_binding("lb_mode", 0, 0, out);
     default:
         return false;
     }

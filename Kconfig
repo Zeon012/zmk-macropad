@@ -51,6 +51,20 @@ config MACROPAD_STATUS_LED_BRIGHTNESS
     range 1 100
     default 15
 
+config MACROPAD_LIGHTBAR
+    bool "Light bar status mode (&lb_mode)"
+    depends on ZMK_RGB_UNDERGLOW && ZMK_BLE
+    help
+      Adds &lb_mode, which switches the underglow strip between ZMK's RGB
+      effects and a 4-LED status display: output, Bluetooth profile and
+      pairing, battery level, and the active layer.
+
+config MACROPAD_LIGHTBAR_BRIGHTNESS
+    int "Light bar status brightness in percent"
+    depends on MACROPAD_LIGHTBAR
+    range 1 100
+    default 30
+
 config MACROPAD_BT_LED
     bool "Show Bluetooth state on a single LED"
     depends on ZMK_BLE && !MACROPAD_STATUS_LED

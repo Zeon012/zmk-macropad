@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT
+
+description: Switches the light bar between RGB effects and status (src/macropad_lightbar.c)
+
+compatible: "zmk,behavior-lightbar-mode"
+
+include: zero_param.yaml
