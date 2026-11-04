@@ -1,5 +1,11 @@
 Portable Windows app for configuring ZMK devices built from this project. No install: download `Macropad-Configurator-Portable.exe` and run it.
 
+## New in 1.0.8
+
+- **RGB tab** for devices with an LED strip: lights on/off, next and previous effect, brighter and dimmer, hue, saturation and speed. On a device without underglow, like the KB60, they're greyed out.
+- **Effect / status** on the same tab switches the macropad's light bar between its RGB effect and a status display (output, Bluetooth, battery and layer). Needs macropad firmware from 2026-11-04 or later.
+- Arrow keys on a full keyboard drawing are blue like the other modifiers; only Space is red.
+
 ## New in 1.0.7
 
 - **Readable keys on a full keyboard** like the KB60: short names on the drawing (Bksp, Del, Caps, BT 1, USB/BT, Vol+, Prev, Boot, Unlock; ▽ for Transparent; a layer key shows just the layer; a macro just its name), with text that shrinks to fit small keys.
