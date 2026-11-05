@@ -95,7 +95,7 @@
              plain('Studio unlock', 'Studio Unlock'),
              plain('Flashing mode', 'Bootloader'), plain('Restart', 'Reset')],
     // ZMK underglow (&rgb_ug); param1 is the RGB_*_CMD value from dt-bindings/zmk/rgb.h.
-    RGB: [plain('Effect / status', 'Light Bar Mode'), plain('Lights on/off', 'Underglow', 0), plain('Lights on', 'Underglow', 1),
+    RGB: [plain('Effect / status', 'Light Bar Mode'), plain('Status LED on/off', 'Status LED'), plain('Lights on/off', 'Underglow', 0), plain('Lights on', 'Underglow', 1),
           plain('Lights off', 'Underglow', 2), plain('Next effect', 'Underglow', 11),
           plain('Previous effect', 'Underglow', 12), plain('Brighter', 'Underglow', 7),
           plain('Dimmer', 'Underglow', 8), plain('Hue +', 'Underglow', 3), plain('Hue -', 'Underglow', 4),
@@ -146,6 +146,7 @@
       case 'Reset': return 'Restart';
       case 'Studio Unlock': return 'Studio unlock';
       case 'Light Bar Mode': return 'Effect / status';
+      case 'Status LED': return 'Status LED on/off';
       case 'Underglow':
         return ['Lights on/off', 'Lights on', 'Lights off', 'Hue +', 'Hue -', 'Saturation +', 'Saturation -',
                 'Brighter', 'Dimmer', 'Faster', 'Slower', 'Next effect', 'Previous effect'][param1] || 'Lights';

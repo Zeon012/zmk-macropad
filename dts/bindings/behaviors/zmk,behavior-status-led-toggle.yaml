@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT
+
+description: Turns the status LED off and on (src/macropad_status_led.c)
+
+compatible: "zmk,behavior-status-led-toggle"
+
+include: zero_param.yaml

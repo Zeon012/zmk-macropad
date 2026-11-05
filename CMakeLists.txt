@@ -7,7 +7,7 @@ if(CONFIG_MACROPAD_STATUS_RPC)
 endif()
 
 if(CONFIG_MACROPAD_STATUS_LED)
-    target_sources(app PRIVATE src/macropad_status_led.c)
+    target_sources(app PRIVATE src/macropad_status_led.c src/behavior_status_led_toggle.c)
 endif()
 
 if(CONFIG_MACROPAD_LIGHTBAR)

@@ -20,6 +20,8 @@
  * or after a profile is selected, cleared, connected or disconnected, so a
  * pad used over USB is not left blinking.
  *
+ * &sl_tog turns the LED off and on; the choice survives restarts.
+ *
  * SPDX-License-Identifier: MIT
  */
 
@@ -29,12 +31,15 @@
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/settings/settings.h>
 #include <zephyr/sys/util.h>
 
 #include <zmk/activity.h>
 #include <zmk/ble.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/ble_active_profile_changed.h>
+
+#include "macropad_status_led.h"
 
 #if IS_ENABLED(CONFIG_ZMK_BATTERY_REPORTING)
 #include <zmk/battery.h>
@@ -78,6 +83,7 @@ static uint32_t tick;
 static bool was_connected;
 static uint32_t connected_ticks;
 static uint32_t bluetooth_event_tick;
+static bool led_disabled; /* saved as "mp_status_led/off" */
 
 static void status_led_tick(struct k_work *work);
 static K_WORK_DELAYABLE_DEFINE(status_led_work, status_led_tick);
@@ -157,7 +163,7 @@ static void status_led_tick(struct k_work *work) {
         }
     }
 
-    set_color(color);
+    set_color(led_disabled ? OFF : color);
     k_work_reschedule(&status_led_work, K_MSEC(TICK_MS));
 }
 
@@ -165,6 +171,32 @@ static int status_led_listener(const zmk_event_t *eh) {
     bluetooth_event_tick = tick;
     return ZMK_EV_EVENT_BUBBLE;
 }
+
+int macropad_status_led_toggle(void) {
+    led_disabled = !led_disabled;
+    if (led_disabled) {
+        set_color(OFF);
+    }
+#if IS_ENABLED(CONFIG_SETTINGS)
+    settings_save_one("mp_status_led/off", &led_disabled, sizeof(led_disabled));
+#endif
+    return 0;
+}
+
+#if IS_ENABLED(CONFIG_SETTINGS)
+static int status_led_settings_set(const char *name, size_t len, settings_read_cb read_cb,
+                                   void *cb_arg) {
+    if (settings_name_steq(name, "off", NULL) && len == sizeof(led_disabled)) {
+        return read_cb(cb_arg, &led_disabled, sizeof(led_disabled)) == sizeof(led_disabled)
+                   ? 0
+                   : -EINVAL;
+    }
+    return -ENOENT;
+}
+
+SETTINGS_STATIC_HANDLER_DEFINE(macropad_status_led, "mp_status_led", NULL,
+                               status_led_settings_set, NULL, NULL);
+#endif
 
 ZMK_LISTENER(macropad_status_led, status_led_listener);
 ZMK_SUBSCRIPTION(macropad_status_led, zmk_ble_active_profile_changed);
