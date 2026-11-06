@@ -116,10 +116,35 @@ static void ensure_strip_power(void) {
     }
 }
 
+/*
+ * A one-LED "bar" (the KB60's status pixel) shows everything on that LED, in
+ * order of urgency: Bluetooth pairing or searching blinks in the profile's
+ * colour, a low battery blinks red, otherwise green = USB output, profile
+ * colour = Bluetooth output.
+ */
+static void render_status_single(struct rgb8 profile_color) {
+    bool usb_out = zmk_endpoint_get_selected().transport == ZMK_TRANSPORT_USB;
+
+    if (!usb_out && !zmk_ble_active_profile_is_connected()) {
+        bool on = zmk_ble_active_profile_is_open() ? tick % 2 == 0
+                                                   : tick % SEARCHING_PERIOD_TICKS == 0;
+        set_pixel(0, on ? profile_color : BLACK);
+    } else if (!usb_powered() && battery_percent() <= LOW_BATTERY_PERCENT) {
+        set_pixel(0, (tick / LOW_BATTERY_BLINK_TICKS) % 2 ? BLACK : RED);
+    } else {
+        set_pixel(0, usb_out ? GREEN : profile_color);
+    }
+}
+
 static void render_status(void) {
     int profile = zmk_ble_active_profile_index();
     struct rgb8 profile_color =
         (profile >= 0 && profile < ARRAY_SIZE(profile_colors)) ? *profile_colors[profile] : WHITE;
+
+    if (STRIP_LEN == 1) {
+        render_status_single(profile_color);
+        return;
+    }
 
     /* LED 1: output */
     bool usb_out = zmk_endpoint_get_selected().transport == ZMK_TRANSPORT_USB;
