@@ -15,7 +15,7 @@ VIA only knows keyboards from its own list, so it needs this folder's definition
 
 ## Editing
 
-- **Unlock the pad first** (hold Game Mode and press Print Screen). VIA has no lock of its own, so the firmware only accepts changes while ZMK Studio is unlocked. VIA can show the keymap while locked, but changes made then are dropped and come back on reload.
+- **Unlock the pad first** (hold APP and press PRINT). VIA has no lock of its own, so the firmware only accepts changes while ZMK Studio is unlocked. VIA can show the keymap while locked, but changes made then are dropped and come back on reload.
 - Changes save on their own about a second after the last one; VIA has no Save button.
 - **Macros**: VIA's Macros tab writes up to 16 macros (512 bytes in all). Put one on a key with **M0**-**M15** under Special. They type as on a US layout.
 - **Knob**: the round knob top-left; click it to set what turning it each way does, per layer.

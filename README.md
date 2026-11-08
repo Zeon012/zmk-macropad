@@ -47,4 +47,4 @@ The original firmware shipped every control as "None", so these are placeholders
 ## Configurator
 
 `configurator/` is the desktop/web app for this pad: live key remapping, macros, knob bindings, a key tester and battery level, over the ZMK Studio connection.
-Run `configurator/start.cmd` (needs Node.js) and open the page in Chrome or Edge, then hold Game Mode and press Print Screen on the pad to unlock it.
+Run `configurator/start.cmd` (needs Node.js) and open the page in Chrome or Edge, then hold APP and press PRINT on the pad to unlock it.

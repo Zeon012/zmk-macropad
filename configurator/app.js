@@ -6,23 +6,22 @@ const { Knob, KeyStream } = MacropadSubsystems;
 const Transports = MacropadTransports;
 
 // Key positions in keymap order (the matrix transform in macropad.overlay).
-// Legends drawn like the printed keycaps.
+// Legends drawn like the printed keycaps (set changed 2026-11-07: peach number caps,
+// blue PlayStation-symbol caps, blue PRINT / PAUSE / APP).
 const icon = paths => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
 const legends = {
-  fast: icon('<path d="M13.5 2.5 5 13.5h5.5l-1 8 8.5-11h-5.5z"/>'),
-  approve: icon('<circle cx="12" cy="12" r="8.5"/><path d="m8 12.3 2.8 2.8L16.2 9.5"/>'),
-  reject: icon('<circle cx="12" cy="12" r="8.5"/><path d="m9 9 6 6m0-6-6 6"/>'),
-  share: icon('<circle cx="6.5" cy="12" r="2.6"/><circle cx="17" cy="6" r="2.6"/><circle cx="17" cy="18" r="2.6"/>' +
-              '<path d="m8.8 10.7 5.9-3.4M8.8 13.3l5.9 3.4"/>'),
-  gameMode: 'SCROLL<span class="legend-box">GAME<br>MODE</span>'
+  triangle: icon('<path d="M12 4.5 20.5 19h-17z"/>'),
+  circle: icon('<circle cx="12" cy="12" r="7.5"/>'),
+  cross: icon('<path d="m5.5 5.5 13 13m0-13-13 13"/>'),
+  square: icon('<rect x="5" y="5" width="14" height="14"/>')
 };
 const padControls = [
-  ['Task 1', '1', 2, 1], ['Task 2', '2', 3, 1],
-  ['Task 3', '3', 1, 2], ['Task 4', '4', 2, 2], ['Task 5', '5', 3, 2], ['Task 6', '6', 4, 2],
-  ['Fast mode', legends.fast, 1, 3], ['Approve', legends.approve, 2, 3],
-  ['Reject', legends.reject, 3, 3], ['Share', legends.share, 4, 3],
-  ['Print Screen', 'PRINT<span class="legend-sub">SCR</span>', 2, 4, 'dark'], ['Break', 'BREAK', 3, 4, 'dark'], ['Game Mode', legends.gameMode, 4, 4, 'dark']
-].map(([name, legend, column, row, cap = 'light']) => ({ name, legend, column, row, cap }));
+  ['Task 1', '1', 2, 1, 'peach'], ['Task 2', '2', 3, 1, 'peach'],
+  ['Task 3', '3', 1, 2, 'peach'], ['Task 4', '4', 2, 2, 'peach'], ['Task 5', '5', 3, 2, 'peach'], ['Task 6', '6', 4, 2, 'peach'],
+  ['Triangle', legends.triangle, 1, 3], ['Circle', legends.circle, 2, 3],
+  ['Cross', legends.cross, 3, 3], ['Square', legends.square, 4, 3],
+  ['Print', 'PRINT', 2, 4], ['Pause', 'PAUSE', 3, 4], ['App', 'APP', 4, 4]
+].map(([name, legend, column, row, cap = 'blue']) => ({ name, legend, column, row, cap }));
 
 const knobTurns = {
   ccw: { name: 'Knob left', request: 'set_layer_ccw_binding',
@@ -35,7 +34,7 @@ const knobTurns = {
 // layout it reports, and identified by its name.
 const PAD_NAME = 'Macropad';
 const UNLOCK_HINTS = {
-  [PAD_NAME]: 'Hold Game Mode and press the Print Screen key',
+  [PAD_NAME]: 'Hold APP and press PRINT',
   KB60: 'Hold Fn and press the \\ key'
 };
 // Friendlier names for the selector; anything else shows under its own name.
