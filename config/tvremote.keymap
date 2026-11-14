@@ -1,6 +1,6 @@
 /*
  * Sony RMT-V501F TV remote. The slide switch picks the layer (src/tvremote_mode.c):
- *   TV     layer 0: infrared, code set chosen with SELECT VIDEO (cycles the slots)
+ *   TV     layer 0: infrared, code set picked by SELECT DVD (set 0) / SELECT VIDEO (set 1)
  *   VIDEO  layer 1: Bluetooth keyboard and media keys
  *   DVD    layer 2: infrared like TV, but always code set 0
  * Hold POWER while putting the batteries in (or plugging USB) for the
@@ -23,9 +23,9 @@
             bindings = <
                 // row 0
                 &ir IR_N1              // 1
-                &ir IR_FAN             // DVD
+                &ir IR_SLOT_0          // DVD
                 &ir IR_EJECT           // EJECT
-                &ir IR_SLOT_NEXT       // VIDEO
+                &ir IR_SLOT_1          // VIDEO
                 &ir IR_GUIDE           // VCR PLUS
                 &ir IR_POWER           // POWER
                 &ir IR_CH_UP           // CH+
@@ -52,7 +52,7 @@
                 &ir IR_AUDIO           // AUDIO
                 &ir IR_MENU            // SET UP
                 &ir IR_SUBTITLE        // SUBTITLE
-                &ir IR_SLEEP           // ANGLE
+                &ir IR_MODE            // ANGLE
                 &ir IR_RED             // REPEAT
                 &ir IR_INPUT           // TV/VIDEO
                 &ir IR_MUTE            // ZOOM
@@ -68,7 +68,7 @@
 
                 // row 5
                 &ir IR_PLAY            // PLAY
-                &ir IR_MODE            // SP/EP
+                &ir IR_FAN             // SP/EP
                 &ir IR_UP              // UP
                 &ir IR_PAUSE           // PAUSE
                 &ir IR_PREV            // PREV
@@ -96,8 +96,8 @@
                 &kp N1                 // 1
                 &bt BT_SEL 0           // DVD
                 &kp C_EJECT            // EJECT
-                &none                  // VIDEO
-                &bt BT_SEL 1           // VCR PLUS
+                &bt BT_SEL 1           // VIDEO
+                &bt BT_SEL 2           // VCR PLUS
                 &kp C_POWER            // POWER
                 &kp PG_UP              // CH+
 
@@ -120,7 +120,7 @@
                 &kp C_VOL_DN           // VOL-
 
                 // row 3
-                &bt BT_SEL 2           // AUDIO
+                &none                  // AUDIO
                 &studio_unlock         // SET UP
                 &bt BT_CLR             // SUBTITLE
                 &none                  // ANGLE
