@@ -173,3 +173,27 @@ config MACROPAD_IR_REPEAT_MS
     default 110
 
 endif
+
+config TVREMOTE_MODE_SWITCH
+    bool "TV remote: 3-position slide switch picks the layer"
+    select GPIO
+    help
+      Reads mode-tv-gpios and mode-video-gpios in the zephyr,user node (switch
+      common to GND) and turns on the VIDEO or DVD layer to match; DVD also
+      locks infrared to code set 0. See src/tvremote_mode.c.
+
+if TVREMOTE_MODE_SWITCH
+
+config TVREMOTE_LAYER_VIDEO
+    int "Layer index for the VIDEO position"
+    default 1
+
+config TVREMOTE_LAYER_DVD
+    int "Layer index for the DVD position"
+    default 2
+
+config TVREMOTE_MODE_POLL_MS
+    int "Milliseconds between switch reads"
+    default 100
+
+endif

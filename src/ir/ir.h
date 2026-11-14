@@ -33,6 +33,8 @@ int ir_tx_send(const struct ir_code *code, bool repeat);
 /* ir_codes.c */
 int ir_active_slot(void);
 void ir_select_slot(int slot);
+/* Use this slot regardless of the active one until called with -1. */
+void ir_lock_slot(int slot);
 const struct ir_set *ir_set_get(int slot);
 int ir_set_put(int slot, const struct ir_set *set);
 void ir_function_pressed(uint8_t function);

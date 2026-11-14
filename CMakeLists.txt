@@ -43,3 +43,7 @@ if(CONFIG_MACROPAD_IR)
         src/ir/behavior_ir.c
     )
 endif()
+
+if(CONFIG_TVREMOTE_MODE_SWITCH)
+    target_sources(app PRIVATE src/tvremote_mode.c)
+endif()

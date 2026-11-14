@@ -56,6 +56,17 @@ static struct ir_set sets[CONFIG_MACROPAD_IR_SLOTS] = {
 };
 
 static uint8_t active;
+/* Set while something (the TV remote's DVD switch position) pins one set,
+ * without changing the saved active slot. -1 = not locked. */
+static int8_t locked = -1;
+
+static inline const struct ir_set *in_use(void) {
+    return &sets[locked >= 0 ? locked : active];
+}
+
+void ir_lock_slot(int slot) {
+    locked = (slot >= 0 && slot < CONFIG_MACROPAD_IR_SLOTS) ? slot : -1;
+}
 
 static bool repeatable(uint8_t f) {
     switch (f) {
@@ -83,7 +94,7 @@ static void repeat_handler(struct k_work *work) {
     if (held >= IR_FN_COUNT) {
         return;
     }
-    ir_tx_send(&sets[active].codes[held], true);
+    ir_tx_send(&in_use()->codes[held], true);
     k_work_reschedule(&repeat_work, K_MSEC(CONFIG_MACROPAD_IR_REPEAT_MS));
 }
 
@@ -91,7 +102,7 @@ void ir_function_pressed(uint8_t f) {
     if (f >= IR_FN_COUNT) {
         return;
     }
-    ir_tx_send(&sets[active].codes[f], false);
+    ir_tx_send(&in_use()->codes[f], false);
     if (repeatable(f)) {
         held = f;
         k_work_reschedule(&repeat_work, K_MSEC(CONFIG_MACROPAD_IR_REPEAT_DELAY_MS));
