@@ -2,7 +2,7 @@
  * Sony RMT-V501F shell with the replacement PCB (bt-remote/pcb, ordered
  * 2026-11-13): SuperMini nRF52840 (nice!nano v2 pinout), 50 keys in an 8 x 7
  * matrix with one 1N4148WS per key (COL2ROW), IR LED driven by an NPN on 101,
- * 3-position slide switch on 102 (TV) / 107 (VIDEO) with DVD = neither, and a
+ * slide switch on 102 (TV; the window only reaches TV and the middle stop), and a
  * nice!view on the standard pins (MOSI 017, SCK 020, CS 006: build with
  * nice_view_adapter nice_view).
  *

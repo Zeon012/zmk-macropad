@@ -1,8 +1,8 @@
 /*
- * Sony RMT-V501F TV remote. The slide switch picks the layer (src/tvremote_mode.c):
- *   TV     layer 0: infrared, code set picked by SELECT DVD (set 0) / SELECT VIDEO (set 1)
- *   VIDEO  layer 1: Bluetooth keyboard and media keys
- *   DVD    layer 2: infrared like TV, but always code set 0
+ * Sony RMT-V501F TV remote, modes as on the original (src/tvremote_mode.c):
+ *   switch TV                         layer 0: infrared, code set 0
+ *   switch DVD/VIDEO, SELECT VIDEO    layer 1: Bluetooth keyboard and media keys
+ *   switch DVD/VIDEO, SELECT DVD      layer 2: infrared like TV, code set 1
  * Hold POWER while putting the batteries in (or plugging USB) for the
  * flashing bootloader.
  *
@@ -11,6 +11,7 @@
 
 #include <behaviors.dtsi>
 #include <behaviors/ir.dtsi>
+#include <behaviors/tvremote.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
 
@@ -23,9 +24,9 @@
             bindings = <
                 // row 0
                 &ir IR_N1              // 1
-                &ir IR_SLOT_0          // DVD
+                &tvsel TVSEL_DVD       // DVD
                 &ir IR_EJECT           // EJECT
-                &ir IR_SLOT_1          // VIDEO
+                &tvsel TVSEL_VIDEO     // VIDEO
                 &ir IR_GUIDE           // VCR PLUS
                 &ir IR_POWER           // POWER
                 &ir IR_CH_UP           // CH+
@@ -94,10 +95,10 @@
             bindings = <
                 // row 0
                 &kp N1                 // 1
-                &bt BT_SEL 0           // DVD
+                &tvsel TVSEL_DVD       // DVD
                 &kp C_EJECT            // EJECT
-                &bt BT_SEL 1           // VIDEO
-                &bt BT_SEL 2           // VCR PLUS
+                &tvsel TVSEL_VIDEO     // VIDEO
+                &bt BT_SEL 0           // VCR PLUS
                 &kp C_POWER            // POWER
                 &kp PG_UP              // CH+
 
@@ -120,10 +121,10 @@
                 &kp C_VOL_DN           // VOL-
 
                 // row 3
-                &none                  // AUDIO
+                &bt BT_SEL 1           // AUDIO
                 &studio_unlock         // SET UP
                 &bt BT_CLR             // SUBTITLE
-                &none                  // ANGLE
+                &bt BT_SEL 2           // ANGLE
                 &none                  // REPEAT
                 &kp TAB                // TV/VIDEO
                 &kp C_MUTE             // ZOOM

@@ -1,0 +1,15 @@
+/*
+ * SPDX-License-Identifier: MIT
+ */
+
+#include <dt-bindings/zmk/tvremote.h>
+
+/ {
+    behaviors {
+        tvsel: tvsel {
+            compatible = "zmk,behavior-tvremote-select";
+            #binding-cells = <1>;
+            display-name = "Remote device";
+        };
+    };
+};

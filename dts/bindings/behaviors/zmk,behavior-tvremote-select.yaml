@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT
+
+description: TV remote SELECT buttons - pick DVD (infrared) or VIDEO (Bluetooth) for the DVD/VIDEO switch position (src/tvremote_mode.c)
+
+compatible: "zmk,behavior-tvremote-select"
+
+include: one_param.yaml

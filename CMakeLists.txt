@@ -45,5 +45,6 @@ if(CONFIG_MACROPAD_IR)
 endif()
 
 if(CONFIG_TVREMOTE_MODE_SWITCH)
+    target_include_directories(app PRIVATE include)
     target_sources(app PRIVATE src/tvremote_mode.c)
 endif()
