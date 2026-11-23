@@ -424,11 +424,11 @@
 
                 // row 6
                 &rc60    // DISPLAY
-                &rc61    // RIGHT
+                &rc61    // LEFT
                 &rc62    // TOP MENU
                 &rc63    // DOWN
                 &rc64    // SELECT
-                &rc65    // LEFT
+                &rc65    // RIGHT
                 &rc66    // RETURN
 
                 // row 7

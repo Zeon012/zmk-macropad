@@ -78,11 +78,11 @@
 
                 // row 6
                 &ir IR_INFO            // DISPLAY
-                &ir IR_RIGHT           // RIGHT
+                &ir IR_LEFT            // LEFT
                 &ir IR_HOME            // TOP MENU
                 &ir IR_DOWN            // DOWN
                 &ir IR_OK              // SELECT
-                &ir IR_LEFT            // LEFT
+                &ir IR_RIGHT           // RIGHT
                 &ir IR_BACK            // RETURN
 
                 // row 7
@@ -149,11 +149,11 @@
 
                 // row 6
                 &kp C_AC_SEARCH        // DISPLAY
-                &kp RIGHT              // RIGHT
+                &kp LEFT               // LEFT
                 &kp C_AC_HOME          // TOP MENU
                 &kp DOWN               // DOWN
                 &kp RET                // SELECT
-                &kp LEFT               // LEFT
+                &kp RIGHT              // RIGHT
                 &kp C_AC_BACK          // RETURN
 
                 // row 7
@@ -220,11 +220,11 @@
 
                 // row 6
                 &trans                 // DISPLAY
-                &trans                 // RIGHT
+                &trans                 // LEFT
                 &trans                 // TOP MENU
                 &trans                 // DOWN
                 &trans                 // SELECT
-                &trans                 // LEFT
+                &trans                 // RIGHT
                 &trans                 // RETURN
 
                 // row 7
